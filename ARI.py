@@ -566,7 +566,16 @@ hr {
     border-color: rgba(99,102,241,0.20) !important;
 }
 
-/* ── CHAT INPUT ── */
+/* ── CHAT INPUT FLOTANTE ── */
+[data-testid="stBottom"] {
+    background: rgba(14,22,40,0.95) !important;
+    backdrop-filter: blur(20px) !important;
+    border-top: 1px solid rgba(255,255,255,0.08) !important;
+    padding: 12px 24px !important;
+}
+.stChatFloatingInputContainer {
+    background: transparent !important;
+}
 [data-testid="stChatInput"] {
     background: rgba(255,255,255,0.07) !important;
     border: 1px solid rgba(255,255,255,0.15) !important;
@@ -579,13 +588,6 @@ hr {
     background: transparent !important;
 }
 [data-testid="stChatInput"] textarea::placeholder { color: #64748b !important; }
-
-/* ── OCULTAR BARRA BLANCA FLOTANTE ── */
-[data-testid="stBottom"], .stChatFloatingInputContainer,
-div[class*="bottom"] > div[class*="chat"] {
-    display: none !important;
-    background: transparent !important;
-}
 
 /* ── EXPANDER INCAPACIDADES ── */
 [data-testid="stExpander"] {
