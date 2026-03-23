@@ -380,7 +380,7 @@ if "chat" not in st.session_state:
     st.session_state.chat = model.start_chat(history=[])
 
 # ── UI ─────────────────────────────────────────────────────────
-st.markdown("""
+st.html("""
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 /* ── RESET Y FONDO ── */
@@ -620,7 +620,7 @@ hr {
 .ari-footer a { color: #6366f1; text-decoration: none; }
 .ari-footer a:hover { text-decoration: underline; }
 </style>
-""", unsafe_allow_html=True)
+""")
 
 # ── SIDEBAR con logo ───────────────────────────────────────────
 import base64, os
