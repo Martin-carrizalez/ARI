@@ -13,7 +13,7 @@ st.set_page_config(
     page_title="ARI – Asistente RH DFC",
     page_icon="🤖",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
 
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
@@ -400,7 +400,19 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
 }
 
 [data-testid="stHeader"] { background: transparent !important; }
-[data-testid="stSidebar"] { display: none !important; }
+
+/* ── SIDEBAR ── */
+[data-testid="stSidebar"] {
+    background: rgba(14,22,40,0.95) !important;
+    border-right: 1px solid rgba(255,255,255,0.08) !important;
+    backdrop-filter: blur(20px) !important;
+}
+[data-testid="stSidebar"] [data-testid="stMarkdown"] p {
+    color: #94a3b8 !important;
+    font-family: 'DM Mono', monospace !important;
+    font-size: 0.78rem !important;
+}
+[data-testid="stSidebarNav"] { display: none !important; }
 
 /* ── OCULTAR ELEMENTOS STREAMLIT ── */
 #MainMenu, footer, header { visibility: hidden !important; }
@@ -610,7 +622,7 @@ hr {
 </style>
 """, unsafe_allow_html=True)
 
-# ── HEADER con logo ────────────────────────────────────────────
+# ── SIDEBAR con logo ───────────────────────────────────────────
 import base64, os
 
 def get_logo_b64():
@@ -621,12 +633,64 @@ def get_logo_b64():
     return None
 
 logo_b64 = get_logo_b64()
-logo_html = f'<img src="data:image/png;base64,{logo_b64}">' if logo_b64 else '<span style="font-size:2rem;">🤖</span>'
 
-st.markdown(f"""
+with st.sidebar:
+    if logo_b64:
+        st.markdown(f"""
+<div style="text-align:center; padding: 24px 16px 16px;">
+    <img src="data:image/png;base64,{logo_b64}" style="width:80%; max-width:180px;">
+</div>
+""", unsafe_allow_html=True)
+    else:
+        st.markdown("""
+<div style="text-align:center; padding:24px 0 8px; font-size:3rem;">🤖</div>
+""", unsafe_allow_html=True)
+
+    st.markdown("""
+<div style="text-align:center; padding: 0 16px 24px;">
+    <div style="font-size:1.1rem; font-weight:700; color:#f1f5f9; font-family:'DM Sans',sans-serif; margin-bottom:4px;">ARI</div>
+    <div style="font-size:0.68rem; color:#64748b; font-family:'DM Mono',monospace; letter-spacing:0.08em; text-transform:uppercase;">Asistente RH Inteligente</div>
+</div>
+<hr style="border:none; border-top:1px solid rgba(255,255,255,0.06); margin:0 0 20px;">
+<div style="padding:0 16px; font-family:'DM Mono',monospace; font-size:0.72rem; color:#64748b; letter-spacing:0.05em; text-transform:uppercase; margin-bottom:10px;">Accesos directos</div>
+""", unsafe_allow_html=True)
+
+    st.markdown("""
+<div style="padding:0 12px; display:flex; flex-direction:column; gap:8px;">
+    <a href="https://martin-carrizalez.github.io/portal-RH-DFC/" target="_blank"
+       style="display:block; background:rgba(99,102,241,0.10); border:1px solid rgba(99,102,241,0.25);
+              border-radius:8px; padding:10px 14px; color:#a5b4fc; text-decoration:none;
+              font-family:'DM Sans',sans-serif; font-size:0.82rem;">
+        🏠 Portal de RH DFC
+    </a>
+    <a href="https://miscomprobantesnomina.jalisco.gob.mx/login" target="_blank"
+       style="display:block; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+              border-radius:8px; padding:10px 14px; color:#94a3b8; text-decoration:none;
+              font-family:'DM Sans',sans-serif; font-size:0.82rem;">
+        💰 Recibos Nómina Estatal
+    </a>
+    <a href="https://www.scsso.fone.sep.gob.mx" target="_blank"
+       style="display:block; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+              border-radius:8px; padding:10px 14px; color:#94a3b8; text-decoration:none;
+              font-family:'DM Sans',sans-serif; font-size:0.82rem;">
+        💰 Recibos Nómina FONE
+    </a>
+    <a href="https://apprende.jalisco.gob.mx/consulta-correo/" target="_blank"
+       style="display:block; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+              border-radius:8px; padding:10px 14px; color:#94a3b8; text-decoration:none;
+              font-family:'DM Sans',sans-serif; font-size:0.82rem;">
+        📧 Consulta tu Correo
+    </a>
+</div>
+<div style="position:absolute; bottom:20px; left:0; right:0; text-align:center;
+            font-size:0.65rem; color:#334155; font-family:'DM Mono',monospace; padding:0 16px;">
+    DFC · SEJ Jalisco · 2026
+</div>
+""", unsafe_allow_html=True)
+
+# ── HEADER solo texto ──────────────────────────────────────────
+st.markdown("""
 <div class="ari-header">
-    {logo_html}
-    <div class="ari-header-divider"></div>
     <div class="ari-header-title">
         <h1>ARI — Asistente RH Inteligente</h1>
         <p>Dirección de Formación Continua · SEJ Jalisco</p>
