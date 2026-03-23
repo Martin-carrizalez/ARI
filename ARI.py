@@ -12,7 +12,8 @@ def today_mx():
 st.set_page_config(
     page_title="ARI – Asistente RH DFC",
     page_icon="🤖",
-    layout="centered"
+    layout="wide",
+    initial_sidebar_state="collapsed"
 )
 
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
@@ -380,34 +381,275 @@ if "chat" not in st.session_state:
 
 # ── UI ─────────────────────────────────────────────────────────
 st.markdown("""
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-    .header-container {
-        background: linear-gradient(135deg, #3949ab 0%, #283593 100%);
-        padding: 1.5rem 2rem;
-        border-radius: 12px;
-        margin-bottom: 1.5rem;
-        color: white;
-        text-align: center;
-    }
-    .header-container h1 { font-size: 2rem; margin: 0; }
-    .header-container p  { margin: 0.3rem 0 0; opacity: 0.9; font-size: 0.95rem; }
+/* ── RESET Y FONDO ── */
+html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
+    background: #0e1628 !important;
+    font-family: 'DM Sans', sans-serif !important;
+    color: #f1f5f9 !important;
+}
+
+[data-testid="stAppViewContainer"] {
+    background: #0e1628 !important;
+    background-image:
+        radial-gradient(ellipse 80% 60% at 0% 0%,   rgba(92,107,192,0.28) 0%, transparent 55%),
+        radial-gradient(ellipse 60% 50% at 100% 100%, rgba(20,184,166,0.20) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 40% at 50% 50%,  rgba(118,75,162,0.12) 0%, transparent 70%) !important;
+    background-attachment: fixed !important;
+}
+
+[data-testid="stHeader"] { background: transparent !important; }
+[data-testid="stSidebar"] { display: none !important; }
+
+/* ── OCULTAR ELEMENTOS STREAMLIT ── */
+#MainMenu, footer, header { visibility: hidden !important; }
+.block-container {
+    padding: 0 !important;
+    max-width: 860px !important;
+    margin: 0 auto !important;
+}
+
+/* ── HEADER ── */
+.ari-header {
+    background: rgba(14,22,40,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+.ari-header img {
+    height: 48px;
+    width: auto;
+}
+.ari-header-divider {
+    width: 1px;
+    height: 32px;
+    background: rgba(255,255,255,0.12);
+}
+.ari-header-title h1 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #f1f5f9;
+    margin: 0;
+    letter-spacing: -0.01em;
+}
+.ari-header-title p {
+    font-size: 0.68rem;
+    color: #94a3b8;
+    margin: 0;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+.ari-status {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    font-family: 'DM Mono', monospace;
+    color: #34d399;
+    background: rgba(16,185,129,0.08);
+    border: 1px solid rgba(16,185,129,0.2);
+    border-radius: 20px;
+    padding: 5px 12px;
+}
+.ari-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #34d399;
+    animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+    0%,100% { opacity:1; transform:scale(1); }
+    50%      { opacity:.4; transform:scale(0.8); }
+}
+
+/* ── QUINCENA BANNER ── */
+.quincena-banner {
+    background: rgba(99,102,241,0.10);
+    border: 1px solid rgba(99,102,241,0.25);
+    border-left: 3px solid #6366f1;
+    border-radius: 10px;
+    padding: 12px 18px;
+    margin: 20px 0 16px;
+    font-size: 0.875rem;
+    color: #c7d2fe;
+    font-family: 'DM Mono', monospace;
+}
+.quincena-banner strong { color: #a5b4fc; }
+
+/* ── SECCIÓN PREGUNTAS ── */
+.section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #64748b;
+    margin: 16px 0 10px;
+}
+
+/* ── BOTONES SUGERIDOS ── */
+div[data-testid="stButton"] button {
+    background: rgba(255,255,255,0.04) !important;
+    border: 1px solid rgba(255,255,255,0.10) !important;
+    color: #cbd5e1 !important;
+    border-radius: 10px !important;
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 0.82rem !important;
+    font-weight: 400 !important;
+    padding: 10px 14px !important;
+    transition: all .2s !important;
+    backdrop-filter: blur(8px) !important;
+    width: 100% !important;
+    text-align: left !important;
+    min-height: 52px !important;
+    line-height: 1.3 !important;
+}
+div[data-testid="stButton"] button:hover {
+    background: rgba(99,102,241,0.12) !important;
+    border-color: rgba(99,102,241,0.40) !important;
+    color: #e0e7ff !important;
+    transform: translateY(-1px) !important;
+}
+
+/* ── DIVIDER ── */
+hr {
+    border: none !important;
+    border-top: 1px solid rgba(255,255,255,0.06) !important;
+    margin: 14px 0 !important;
+}
+
+/* ── CHAT MESSAGES ── */
+[data-testid="stChatMessage"] {
+    background: rgba(255,255,255,0.04) !important;
+    border: 1px solid rgba(255,255,255,0.07) !important;
+    border-radius: 14px !important;
+    backdrop-filter: blur(8px) !important;
+    margin-bottom: 10px !important;
+    padding: 14px 18px !important;
+}
+[data-testid="stChatMessage"] p {
+    color: #e2e8f0 !important;
+    font-size: 0.9rem !important;
+    line-height: 1.7 !important;
+}
+[data-testid="stChatMessage"][data-testid*="user"] {
+    background: rgba(99,102,241,0.08) !important;
+    border-color: rgba(99,102,241,0.20) !important;
+}
+
+/* ── CHAT INPUT ── */
+[data-testid="stChatInput"] {
+    background: rgba(255,255,255,0.05) !important;
+    border: 1px solid rgba(255,255,255,0.12) !important;
+    border-radius: 12px !important;
+    backdrop-filter: blur(10px) !important;
+}
+[data-testid="stChatInput"] textarea {
+    color: #f1f5f9 !important;
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 0.9rem !important;
+    background: transparent !important;
+}
+[data-testid="stChatInput"] textarea::placeholder { color: #475569 !important; }
+
+/* ── EXPANDER INCAPACIDADES ── */
+[data-testid="stExpander"] {
+    background: rgba(255,255,255,0.03) !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    border-radius: 12px !important;
+    backdrop-filter: blur(8px) !important;
+}
+[data-testid="stExpander"] summary {
+    color: #94a3b8 !important;
+    font-family: 'DM Mono', monospace !important;
+    font-size: 0.82rem !important;
+}
+[data-testid="stExpander"] summary:hover { color: #c7d2fe !important; }
+
+/* ── FILE UPLOADER ── */
+[data-testid="stFileUploader"] {
+    background: rgba(255,255,255,0.03) !important;
+    border: 1px dashed rgba(99,102,241,0.3) !important;
+    border-radius: 10px !important;
+}
+[data-testid="stFileUploader"] label { color: #94a3b8 !important; }
+
+/* ── INFO BOX ── */
+[data-testid="stInfo"] {
+    background: rgba(99,102,241,0.08) !important;
+    border: 1px solid rgba(99,102,241,0.25) !important;
+    border-radius: 10px !important;
+    color: #c7d2fe !important;
+}
+
+/* ── SPINNER ── */
+[data-testid="stSpinner"] { color: #6366f1 !important; }
+
+/* ── FOOTER ── */
+.ari-footer {
+    text-align: center;
+    padding: 24px 20px;
+    margin-top: 32px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    font-size: 0.78rem;
+    color: #475569;
+    font-family: 'DM Mono', monospace;
+}
+.ari-footer a { color: #6366f1; text-decoration: none; }
+.ari-footer a:hover { text-decoration: underline; }
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown("""
-<div class="header-container">
-    <h1>🤖 ARI</h1>
-    <p>Asistente RH Inteligente · Dirección de Formación Continua · SEJ Jalisco</p>
+# ── HEADER con logo ────────────────────────────────────────────
+import base64, os
+
+def get_logo_b64():
+    logo_path = "logo-dfc.png"
+    if os.path.exists(logo_path):
+        with open(logo_path, "rb") as f:
+            return base64.b64encode(f.read()).decode()
+    return None
+
+logo_b64 = get_logo_b64()
+logo_html = f'<img src="data:image/png;base64,{logo_b64}">' if logo_b64 else '<span style="font-size:2rem;">🤖</span>'
+
+st.markdown(f"""
+<div class="ari-header">
+    {logo_html}
+    <div class="ari-header-divider"></div>
+    <div class="ari-header-title">
+        <h1>ARI — Asistente RH Inteligente</h1>
+        <p>Dirección de Formación Continua · SEJ Jalisco</p>
+    </div>
+    <div class="ari-status">
+        <div class="ari-dot"></div>
+        Sistema activo
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
-# Próxima quincena
+# ── PRÓXIMA QUINCENA ───────────────────────────────────────────
 prox, dias = get_proxima_quincena()
 if prox:
-    st.info(f"💰 **Próxima quincena:** {prox['q']} — {prox['fecha'].strftime('%d de %B de %Y')} (en {dias} días) · {prox['concepto']}")
+    st.markdown(f"""
+<div class="quincena-banner">
+    💰 <strong>Próxima quincena:</strong> {prox['q']} · {prox['fecha'].strftime('%d de %B de %Y')} · en {dias} días<br>
+    <span style="opacity:.75;">{prox['concepto']}</span>
+</div>
+""", unsafe_allow_html=True)
 
-# Preguntas sugeridas
-st.markdown("**Preguntas frecuentes:**")
+# ── PREGUNTAS FRECUENTES ───────────────────────────────────────
+st.markdown('<div class="section-label">Preguntas frecuentes</div>', unsafe_allow_html=True)
 cols = st.columns(3)
 sugerencias = [
     "¿Cuántos días económicos me corresponden?",
@@ -427,20 +669,34 @@ for i, sug in enumerate(sugerencias):
 
 st.divider()
 
-# Historial
+# ── HISTORIAL ─────────────────────────────────────────────────
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
-# Verificación de imagen
-with st.expander("📎 Subir imagen de incapacidad para verificar requisitos"):
-    uploaded_img = st.file_uploader("Sube la foto de tu incapacidad", type=["jpg","jpeg","png"])
+# ── VERIFICACIÓN DE IMAGEN ────────────────────────────────────
+with st.expander("📎 Subir imagen o PDF de incapacidad para verificar requisitos"):
+    uploaded_img = st.file_uploader(
+        "Sube la foto o PDF de tu incapacidad",
+        type=["jpg","jpeg","png","pdf"]
+    )
     if uploaded_img and st.button("Verificar incapacidad"):
-        image = Image.open(uploaded_img)
         prompt_img = "El usuario ha subido una imagen de su incapacidad médica. Analízala y verifica si cumple con los 3 requisitos obligatorios según la normativa. Indica cuáles cumple (✅) y cuáles no (❌), y qué debe hacer si falta algo. También revisa que no exceda 28 días."
+        if uploaded_img.type == "application/pdf":
+            import fitz
+            pdf_bytes = uploaded_img.read()
+            doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+            page = doc[0]
+            pix = page.get_pixmap(dpi=150)
+            import io
+            img_bytes = io.BytesIO(pix.tobytes("png"))
+            image = Image.open(img_bytes)
+        else:
+            image = Image.open(uploaded_img)
+
         with st.chat_message("user"):
             st.markdown("📸 Subí mi incapacidad para verificar que esté correcta.")
-            st.image(image, width=300)
+            st.image(image, width=320)
         st.session_state.messages.append({"role":"user","content":"📸 [Imagen de incapacidad adjunta para verificación]"})
         with st.chat_message("assistant"):
             with st.spinner("Analizando..."):
@@ -448,7 +704,7 @@ with st.expander("📎 Subir imagen de incapacidad para verificar requisitos"):
                 st.markdown(response.text)
         st.session_state.messages.append({"role":"assistant","content":response.text})
 
-# Input
+# ── CHAT INPUT ────────────────────────────────────────────────
 question = st.session_state.pop("pending_question", None)
 user_input = st.chat_input("Escribe tu pregunta aquí...") or question
 
@@ -462,10 +718,10 @@ if user_input:
             st.markdown(response.text)
     st.session_state.messages.append({"role":"assistant","content":response.text})
 
+# ── FOOTER ────────────────────────────────────────────────────
 st.markdown("""
-<br>
-<div style="text-align:center; color:#999; font-size:0.8rem;">
-    ARI · Dirección de Formación Continua · SEJ Jalisco<br>
-    <a href="https://martin-carrizalez.github.io/portal-RH-DFC/" target="_blank" style="color:#3949ab;">Ir al Portal de RH</a>
+<div class="ari-footer">
+    ARI · Dirección de Formación Continua · SEJ Jalisco · 2026<br>
+    <a href="https://martin-carrizalez.github.io/portal-RH-DFC/" target="_blank">← Volver al Portal de RH</a>
 </div>
 """, unsafe_allow_html=True)
