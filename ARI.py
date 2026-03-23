@@ -385,27 +385,34 @@ st.html("""
 <style>
 /* ── RESET Y FONDO ── */
 html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
-    background: #0e1628 !important;
+    background: #1a2d4f !important;
     font-family: 'DM Sans', sans-serif !important;
     color: #f1f5f9 !important;
 }
 
 [data-testid="stAppViewContainer"] {
-    background: #0e1628 !important;
+    background: #1a2d4f !important;
     background-image:
-        radial-gradient(ellipse 80% 60% at 0% 0%,   rgba(92,107,192,0.28) 0%, transparent 55%),
-        radial-gradient(ellipse 60% 50% at 100% 100%, rgba(20,184,166,0.20) 0%, transparent 55%),
-        radial-gradient(ellipse 50% 40% at 50% 50%,  rgba(118,75,162,0.12) 0%, transparent 70%) !important;
+        radial-gradient(at 0% 0%,   rgba(92,107,192,0.20) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(20,184,166,0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 0%,  rgba(118,75,162,0.10) 0px, transparent 50%) !important;
     background-attachment: fixed !important;
+}
+
+/* ── OCULTAR BARRA BLANCA INFERIOR ── */
+[data-testid="stBottom"] {
+    display: none !important;
+}
+.stChatFloatingInputContainer {
+    display: none !important;
 }
 
 [data-testid="stHeader"] { background: transparent !important; }
 
 /* ── SIDEBAR ── */
 [data-testid="stSidebar"] {
-    background: rgba(14,22,40,0.95) !important;
+    background: rgba(22,38,72,0.97) !important;
     border-right: 1px solid rgba(255,255,255,0.08) !important;
-    backdrop-filter: blur(20px) !important;
 }
 [data-testid="stSidebar"] [data-testid="stMarkdown"] p {
     color: #94a3b8 !important;
@@ -561,10 +568,9 @@ hr {
 
 /* ── CHAT INPUT ── */
 [data-testid="stChatInput"] {
-    background: rgba(255,255,255,0.05) !important;
-    border: 1px solid rgba(255,255,255,0.12) !important;
+    background: rgba(255,255,255,0.07) !important;
+    border: 1px solid rgba(255,255,255,0.15) !important;
     border-radius: 12px !important;
-    backdrop-filter: blur(10px) !important;
 }
 [data-testid="stChatInput"] textarea {
     color: #f1f5f9 !important;
@@ -572,7 +578,14 @@ hr {
     font-size: 0.9rem !important;
     background: transparent !important;
 }
-[data-testid="stChatInput"] textarea::placeholder { color: #475569 !important; }
+[data-testid="stChatInput"] textarea::placeholder { color: #64748b !important; }
+
+/* ── OCULTAR BARRA BLANCA FLOTANTE ── */
+[data-testid="stBottom"], .stChatFloatingInputContainer,
+div[class*="bottom"] > div[class*="chat"] {
+    display: none !important;
+    background: transparent !important;
+}
 
 /* ── EXPANDER INCAPACIDADES ── */
 [data-testid="stExpander"] {
