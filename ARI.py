@@ -583,7 +583,7 @@ hr {
 
 /* El texto dentro de la caja */
 [data-testid="stChatInput"] textarea {
-    color: #f1f5f9 !important; /* Texto claro */
+    color: #000000 !important; /* Texto en negro para que resalte en el fondo blanco */
     background-color: transparent !important; 
     font-family: 'DM Sans', sans-serif !important;
     font-size: 0.95rem !important;
