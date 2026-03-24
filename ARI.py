@@ -564,30 +564,35 @@ hr {
 }
 
 /* ── CHAT INPUT FLOTANTE ── */
-[data-testid="stBottom"], 
-[data-testid="stBottom"] > div {
-    background-color: rgba(14,22,40,0.98) !important; /* Fuerza el color oscuro en toda la franja */
-    backdrop-filter: blur(20px) !important;
-}
 [data-testid="stBottom"] {
+    background-color: #1a2d4f !important; /* El color exacto del fondo de tu app */
     border-top: 1px solid rgba(255,255,255,0.08) !important;
-    padding: 12px 24px !important;
+    padding: 12px 24px 24px 24px !important;
 }
-.stChatFloatingInputContainer {
+
+[data-testid="stBottom"] > div {
     background: transparent !important;
 }
-[data-testid="stChatInput"] {
-    background: rgba(255,255,255,0.07) !important;
+
+/* Forzar fondo oscuro en la caja de texto (quitar el blanco) */
+[data-testid="stChatInput"] > div {
+    background-color: rgba(22, 38, 72, 0.95) !important; /* Un azul oscuro que combina con tu sidebar */
     border: 1px solid rgba(255,255,255,0.15) !important;
     border-radius: 12px !important;
 }
+
+/* El texto dentro de la caja */
 [data-testid="stChatInput"] textarea {
-    color: #f1f5f9 !important;
+    color: #f1f5f9 !important; /* Texto claro */
+    background-color: transparent !important; 
     font-family: 'DM Sans', sans-serif !important;
-    font-size: 0.9rem !important;
-    background-color: transparent !important;
+    font-size: 0.95rem !important;
 }
-[data-testid="stChatInput"] textarea::placeholder { color: #64748b !important; }
+
+/* El texto de "Escribe tu pregunta aquí..." */
+[data-testid="stChatInput"] textarea::placeholder { 
+    color: #94a3b8 !important; 
+}
 
 /* ── EXPANDER INCAPACIDADES ── */
 [data-testid="stExpander"] {
