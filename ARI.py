@@ -548,8 +548,12 @@ hr {
     backdrop-filter: blur(8px) !important;
     margin-bottom: 10px !important;
     padding: 14px 18px !important;
+    color: #e2e8f0 !important; /* Hace que TODO el texto base sea claro */
 }
-[data-testid="stChatMessage"] p {
+/* Aplicamos el color claro a párrafos y listas (viñetas) */
+[data-testid="stChatMessage"] p, 
+[data-testid="stChatMessage"] li, 
+[data-testid="stChatMessage"] ul {
     color: #e2e8f0 !important;
     font-size: 0.9rem !important;
     line-height: 1.7 !important;
@@ -560,9 +564,12 @@ hr {
 }
 
 /* ── CHAT INPUT FLOTANTE ── */
-[data-testid="stBottom"] {
-    background: rgba(14,22,40,0.95) !important;
+[data-testid="stBottom"], 
+[data-testid="stBottom"] > div {
+    background-color: rgba(14,22,40,0.98) !important; /* Fuerza el color oscuro en toda la franja */
     backdrop-filter: blur(20px) !important;
+}
+[data-testid="stBottom"] {
     border-top: 1px solid rgba(255,255,255,0.08) !important;
     padding: 12px 24px !important;
 }
@@ -578,7 +585,7 @@ hr {
     color: #f1f5f9 !important;
     font-family: 'DM Sans', sans-serif !important;
     font-size: 0.9rem !important;
-    background: transparent !important;
+    background-color: transparent !important;
 }
 [data-testid="stChatInput"] textarea::placeholder { color: #64748b !important; }
 
