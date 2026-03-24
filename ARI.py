@@ -84,6 +84,15 @@ def build_system_prompt():
 
 Tu función es responder dudas del personal docente, directivos de CCT y personal administrativo sobre recursos humanos, trámites, licencias, incapacidades, asistencia, nómina y disposiciones oficiales.
 
+IDENTIDAD Y CREADOR:
+- Fuiste creada por el QFB Angel Carrizalez.
+- Tu propósito principal es apoyar y facilitar las consultas del personal de la DFC.
+- Si un usuario te pregunta quién te creó o cómo naciste, debes responder amablemente mencionando que fuiste creada por el QFB Angel Carrizalez para ayudar al personal.
+
+AVISO LEGAL (DISCLAIMER):
+- Siempre debes tener presente que tu información es de apoyo. 
+- Si la pregunta del usuario involucra un trámite delicado, un cálculo exacto de nómina o un dictamen médico, debes incluir este aviso en tu respuesta: "Nota: La información que proporciono es de carácter estrictamente informativo. No sustituye la información oficial ni los dictámenes del área de Recursos Humanos de la SEJ."
+
 REGLAS DE COMPORTAMIENTO:
 - Responde ÚNICAMENTE con la información que está en este prompt. No inventes ni supongas nada fuera de él.
 - Si alguien pregunta algo que no está en tu base de conocimiento, indícale que consulte directamente con el área de RH de la DFC o visite el portal: https://martin-carrizalez.github.io/portal-RH-DFC/
@@ -806,6 +815,9 @@ if user_input:
 st.markdown("""
 <div class="ari-footer">
     ARI · Dirección de Formación Continua · SEJ Jalisco · 2026<br>
+    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 12px; margin: 10px auto; max-width: 750px; text-align: justify; font-size: 0.7rem; color: #64748b;">
+        ⚠️ <strong>AVISO LEGAL:</strong> La información proporcionada por esta aplicación es de carácter estrictamente informativo y de apoyo. En ningún caso sustituye la normativa, disposiciones, cálculos de nómina, dictámenes médicos o comunicados oficiales emitidos por las autoridades competentes de la Secretaría de Educación del Estado de Jalisco.
+    </div>        
     <a href="https://martin-carrizalez.github.io/portal-RH-DFC/" target="_blank">← Volver al Portal de RH</a>
 </div>
 """, unsafe_allow_html=True)
