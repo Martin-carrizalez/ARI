@@ -497,7 +497,7 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
         radial-gradient(at 80% 10%,  rgba(217,70,239,0.07) 0px, transparent 40%) !important;
     background-attachment: fixed !important;
 }
-[data-testid="stHeader"] { display: none !important; }
+[data-testid="stHeader"] { background: #1e1b4b !important; }
 #MainMenu, footer, header { visibility: hidden !important; }
 .block-container { padding: 0 !important; max-width: 880px !important; margin: 0 auto !important; }
  
