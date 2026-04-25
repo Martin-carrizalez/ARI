@@ -486,116 +486,260 @@ st.html("""
 <style>
 /* ── RESET Y FONDO ── */
 html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
-    background: #eef2ff !important;
-    color: #1e293b !important;
+    background: #1a2d4f !important;
+    font-family: 'DM Sans', sans-serif !important;
+    color: #f1f5f9 !important;
 }
 
 [data-testid="stAppViewContainer"] {
-    background: #eef2ff !important;
+    background: #1a2d4f !important;
     background-image:
-        radial-gradient(at 0% 0%,   rgba(79,70,229,0.10) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, rgba(13,148,136,0.08) 0px, transparent 50%) !important;
+        radial-gradient(at 0% 0%,   rgba(92,107,192,0.20) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(20,184,166,0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 0%,  rgba(118,75,162,0.10) 0px, transparent 50%) !important;
+    background-attachment: fixed !important;
 }
+
+
+[data-testid="stHeader"] { background: transparent !important; }
 
 /* ── SIDEBAR ── */
 [data-testid="stSidebar"] {
-    background: rgba(255,255,255,0.97) !important;
-    border-right: 1px solid rgba(99,102,241,0.15) !important;
+    background: rgba(22,38,72,0.97) !important;
+    border-right: 1px solid rgba(255,255,255,0.08) !important;
 }
 [data-testid="stSidebar"] [data-testid="stMarkdown"] p {
-    color: #334155 !important;
+    color: #94a3b8 !important;
+    font-family: 'DM Mono', monospace !important;
+    font-size: 0.78rem !important;
+}
+[data-testid="stSidebarNav"] { display: none !important; }
+
+/* ── OCULTAR ELEMENTOS STREAMLIT ── */
+#MainMenu, footer, header { visibility: hidden !important; }
+.block-container {
+    padding: 0 !important;
+    max-width: 860px !important;
+    margin: 0 auto !important;
 }
 
 /* ── HEADER ── */
 .ari-header {
-    background: rgba(255,255,255,0.95);
-    border-bottom: 1px solid rgba(99,102,241,0.15);
+    background: rgba(14,22,40,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
-.ari-header-title h1 { color: #1e293b; }
-.ari-header-title p  { color: #64748b; }
+.ari-header img {
+    height: 48px;
+    width: auto;
+}
+.ari-header-divider {
+    width: 1px;
+    height: 32px;
+    background: rgba(255,255,255,0.12);
+}
+.ari-header-title h1 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #f1f5f9;
+    margin: 0;
+    letter-spacing: -0.01em;
+}
+.ari-header-title p {
+    font-size: 0.68rem;
+    color: #94a3b8;
+    margin: 0;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+.ari-status {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    font-family: 'DM Mono', monospace;
+    color: #34d399;
+    background: rgba(16,185,129,0.08);
+    border: 1px solid rgba(16,185,129,0.2);
+    border-radius: 20px;
+    padding: 5px 12px;
+}
+.ari-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #34d399;
+    animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+    0%,100% { opacity:1; transform:scale(1); }
+    50%      { opacity:.4; transform:scale(0.8); }
+}
 
 /* ── QUINCENA BANNER ── */
 .quincena-banner {
-    background: rgba(79,70,229,0.07);
-    border: 1px solid rgba(79,70,229,0.20);
-    border-left: 3px solid #4f46e5;
-    color: #3730a3;
+    background: rgba(99,102,241,0.10);
+    border: 1px solid rgba(99,102,241,0.25);
+    border-left: 3px solid #6366f1;
+    border-radius: 10px;
+    padding: 12px 18px;
+    margin: 20px 0 16px;
+    font-size: 0.875rem;
+    color: #c7d2fe;
+    font-family: 'DM Mono', monospace;
 }
-.quincena-banner strong { color: #4338ca; }
+.quincena-banner strong { color: #a5b4fc; }
+
+/* ── SECCIÓN PREGUNTAS ── */
+.section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #64748b;
+    margin: 16px 0 10px;
+}
 
 /* ── BOTONES SUGERIDOS ── */
 div[data-testid="stButton"] button {
-    background: rgba(255,255,255,0.90) !important;
-    border: 1px solid rgba(99,102,241,0.25) !important;
-    color: #1e293b !important;
+    background: rgba(255,255,255,0.04) !important;
+    border: 1px solid rgba(255,255,255,0.10) !important;
+    color: #cbd5e1 !important;
+    border-radius: 10px !important;
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 0.82rem !important;
+    font-weight: 400 !important;
+    padding: 10px 14px !important;
+    transition: all .2s !important;
+    backdrop-filter: blur(8px) !important;
+    width: 100% !important;
+    text-align: left !important;
+    min-height: 52px !important;
+    line-height: 1.3 !important;
 }
 div[data-testid="stButton"] button:hover {
-    background: rgba(79,70,229,0.08) !important;
-    border-color: rgba(79,70,229,0.50) !important;
-    color: #4338ca !important;
+    background: rgba(99,102,241,0.12) !important;
+    border-color: rgba(99,102,241,0.40) !important;
+    color: #e0e7ff !important;
+    transform: translateY(-1px) !important;
 }
 
 /* ── DIVIDER ── */
-hr { border-top: 1px solid rgba(99,102,241,0.12) !important; }
+hr {
+    border: none !important;
+    border-top: 1px solid rgba(255,255,255,0.06) !important;
+    margin: 14px 0 !important;
+}
 
 /* ── CHAT MESSAGES ── */
 [data-testid="stChatMessage"] {
-    background: rgba(255,255,255,0.92) !important;
-    border: 1px solid rgba(99,102,241,0.15) !important;
-    color: #1e293b !important;
+    background: rgba(255,255,255,0.04) !important;
+    border: 1px solid rgba(255,255,255,0.07) !important;
+    border-radius: 14px !important;
+    backdrop-filter: blur(8px) !important;
+    margin-bottom: 10px !important;
+    padding: 14px 18px !important;
+    color: #e2e8f0 !important; /* Hace que TODO el texto base sea claro */
 }
-[data-testid="stChatMessage"] p,
-[data-testid="stChatMessage"] li,
+/* Aplicamos el color claro a párrafos y listas (viñetas) */
+[data-testid="stChatMessage"] p, 
+[data-testid="stChatMessage"] li, 
 [data-testid="stChatMessage"] ul {
-    color: #1e293b !important;
+    color: #e2e8f0 !important;
+    font-size: 0.9rem !important;
+    line-height: 1.7 !important;
 }
 [data-testid="stChatMessage"][data-testid*="user"] {
-    background: rgba(79,70,229,0.06) !important;
-    border-color: rgba(79,70,229,0.20) !important;
+    background: rgba(99,102,241,0.08) !important;
+    border-color: rgba(99,102,241,0.20) !important;
 }
 
 /* ── CHAT INPUT FLOTANTE ── */
 [data-testid="stBottom"] {
-    background-color: #eef2ff !important;
-    border-top: 1px solid rgba(99,102,241,0.15) !important;
+    background-color: #1a2d4f !important; /* El color exacto del fondo de tu app */
+    border-top: 1px solid rgba(255,255,255,0.08) !important;
+    padding: 12px 24px 24px 24px !important;
 }
-[data-testid="stChatInput"] > div {
-    background-color: rgba(255,255,255,0.95) !important;
-    border: 1px solid rgba(99,102,241,0.30) !important;
-}
-[data-testid="stChatInput"] textarea {
-    color: #1e293b !important;
-}
-[data-testid="stChatInput"] textarea::placeholder { color: #94a3b8 !important; }
 
-/* ── EXPANDER ── */
-[data-testid="stExpander"] {
-    background: rgba(255,255,255,0.90) !important;
-    border: 1px solid rgba(99,102,241,0.18) !important;
+[data-testid="stBottom"] > div {
+    background: transparent !important;
 }
-[data-testid="stExpander"] summary { color: #334155 !important; }
-[data-testid="stExpander"] summary:hover { color: #4f46e5 !important; }
+
+/* Forzar fondo oscuro en la caja de texto (quitar el blanco) */
+[data-testid="stChatInput"] > div {
+    background-color: rgba(22, 38, 72, 0.95) !important; /* Un azul oscuro que combina con tu sidebar */
+    border: 1px solid rgba(255,255,255,0.15) !important;
+    border-radius: 12px !important;
+}
+
+/* El texto dentro de la caja */
+[data-testid="stChatInput"] textarea {
+    color: #000000 !important; /* Texto en negro para que resalte en el fondo blanco */
+    background-color: transparent !important; 
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 0.95rem !important;
+}
+
+/* El texto de "Escribe tu pregunta aquí..." */
+[data-testid="stChatInput"] textarea::placeholder { 
+    color: #94a3b8 !important; 
+}
+
+/* ── EXPANDER INCAPACIDADES ── */
+[data-testid="stExpander"] {
+    background: rgba(255,255,255,0.03) !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    border-radius: 12px !important;
+    backdrop-filter: blur(8px) !important;
+}
+[data-testid="stExpander"] summary {
+    color: #94a3b8 !important;
+    font-family: 'DM Mono', monospace !important;
+    font-size: 0.82rem !important;
+}
+[data-testid="stExpander"] summary:hover { color: #c7d2fe !important; }
 
 /* ── FILE UPLOADER ── */
 [data-testid="stFileUploader"] {
-    background: rgba(255,255,255,0.90) !important;
-    border: 1px dashed rgba(79,70,229,0.35) !important;
+    background: rgba(255,255,255,0.03) !important;
+    border: 1px dashed rgba(99,102,241,0.3) !important;
+    border-radius: 10px !important;
 }
-[data-testid="stFileUploader"] label { color: #334155 !important; }
+[data-testid="stFileUploader"] label { color: #94a3b8 !important; }
 
 /* ── INFO BOX ── */
 [data-testid="stInfo"] {
-    background: rgba(79,70,229,0.06) !important;
-    border: 1px solid rgba(79,70,229,0.20) !important;
-    color: #3730a3 !important;
+    background: rgba(99,102,241,0.08) !important;
+    border: 1px solid rgba(99,102,241,0.25) !important;
+    border-radius: 10px !important;
+    color: #c7d2fe !important;
 }
+
+/* ── SPINNER ── */
+[data-testid="stSpinner"] { color: #6366f1 !important; }
 
 /* ── FOOTER ── */
 .ari-footer {
-    border-top: 1px solid rgba(99,102,241,0.12);
-    color: #64748b;
+    text-align: center;
+    padding: 24px 20px;
+    margin-top: 32px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    font-size: 0.78rem;
+    color: #475569;
+    font-family: 'DM Mono', monospace;
 }
-.ari-footer a { color: #4f46e5; }
+.ari-footer a { color: #6366f1; text-decoration: none; }
+.ari-footer a:hover { text-decoration: underline; }
 </style>
 """)
 
