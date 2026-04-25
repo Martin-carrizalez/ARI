@@ -49,6 +49,7 @@ DIAS_INHABILES_2026 = [
     ("Lunes",   "16 de marzo de 2026",      "Natalicio de Don Benito Juárez"),
     ("Viernes", "01 de mayo de 2026",       "Día del Trabajo"),
     ("Martes",  "05 de mayo de 2026",       "Día de la Batalla de Puebla"),
+    ("Viernes",  "15 de mayo de 2026",       "Día del Maestro"),
     ("Lunes",   "15 de junio de 2026",      "Día del Estado Libre y Soberano de Jalisco"),
     ("Miércoles","16 de septiembre de 2026","Día de la Independencia de México"),
     ("Lunes",   "28 de septiembre de 2026", "Día del Servidor Público"),
@@ -353,6 +354,95 @@ VACACIONES DE PRIMAVERA 2026
 - Guardias: el personal de guardia cumple horario habitual con registro de entrada y salida.
 - Durante guardias NO se otorgan días económicos ni descanso por ningún concepto.
 - Relación de guardias se envía a más tardar el martes 24 de marzo de 2026 a: paolapatricia.lopez@jalisco.gob.mx y sergio.camilo@jalisco.gob.mx
+
+═══════════════════════════════════════════════════════
+CÁLCULO DE SUELDO QUINCENAL — PAGO 07 (HSM)
+═══════════════════════════════════════════════════════
+ 
+El Pago 07 es el sueldo base quincenal de los docentes de hora/semana/mes (HSM).
+Corresponde ÚNICAMENTE al sueldo base. NO incluye prestaciones, descuentos ni retenciones.
+Si preguntan por descuentos o prestaciones, indica que esa información no está disponible en este módulo.
+ 
+TARIFAS POR CATEGORÍA (valor mensual por hora):
+- Titular C:    $1,004.60
+- Titular B:    $850.81
+- Titular A:    $737.21
+- Asociado C:   $641.06
+- Asociado B:   $573.18
+- Asociado A:   $517.15
+ 
+FÓRMULA:
+Pago quincenal (07) = (Número de horas × Tarifa mensual de la categoría) ÷ 2
+ 
+EJEMPLOS:
+- 15 horas Asociado A: (15 × $517.15) ÷ 2 = $3,878.63 quincenal
+- 8 horas Asociado B:  (8 × $573.18)  ÷ 2 = $2,292.72 quincenal
+- 10 horas Titular A:  (10 × $737.21) ÷ 2 = $3,686.05 quincenal
+- 6 horas Titular B:   (6 × $850.81)  ÷ 2 = $2,552.43 quincenal
+ 
+MÚLTIPLES CATEGORÍAS (cuando un docente tiene horas en más de una):
+Pago total = Σ (horas_categoría × tarifa_categoría) ÷ 2
+Ejemplo: 10 horas Asociado A + 6 horas Titular B:
+  (10 × $517.15) + (6 × $850.81) = $10,276.36 ÷ 2 = $5,138.18 quincenal
+ 
+REGLAS IMPORTANTES:
+- Si el docente subió de categoría recientemente, el nuevo pago aplica a partir de que el movimiento fue procesado en nómina. Para verificar si ya está aplicado, debe revisar su recibo de nómina.
+- ARI calcula con base en las tarifas vigentes del tabulador HSM DFC SEJ Jalisco (Abril 2026).
+- Si el resultado no coincide con el recibo, indicar al docente que acuda directamente con RH para revisión de su expediente.
+- NO especular sobre fechas de aplicación de movimientos escalafonarios ni sobre otros conceptos del recibo.
+ 
+Fuente: Tabulador de percepciones HSM — DFC SEJ Jalisco | Abril 2026
+ 
+═══════════════════════════════════════════════════════
+DECLARACIÓN PATRIMONIAL — SEPIFAPE
+(Contraloría del Estado de Jalisco)
+═══════════════════════════════════════════════════════
+ 
+IMPORTANTE: ARI orienta sobre el proceso general. NO asesora sobre qué bienes declarar ni cómo valuar el patrimonio personal — eso corresponde exclusivamente a la Contraloría del Estado.
+ 
+¿QUÉ ES SEPIFAPE?
+Sistema de Evolución Patrimonial, de Declaraciones de Intereses y Constancia de Presentación de Declaración Fiscal de la Administración Pública del Estado de Jalisco. Es la plataforma donde se presenta la declaración.
+ 
+¿QUIÉNES DEBEN DECLARAR?
+Todos los servidores públicos sin importar el nivel del cargo, incluyendo personal con contrato temporal o interinato.
+La Contraloría del Estado de Jalisco recepciona únicamente las declaraciones del Poder Ejecutivo del Estado de Jalisco.
+ 
+TIPOS DE DECLARACIÓN Y PLAZOS:
+- Inicial: dentro de los 60 días naturales siguientes a la toma de posesión del cargo.
+- Modificación: durante el mes de mayo de cada año (si laboró al menos un día del año anterior).
+- Conclusión del encargo: dentro de los 60 días naturales siguientes a la separación del cargo.
+ 
+PERÍODO QUE SE REPORTA:
+- Inicial y Conclusión: información actualizada a la fecha del inicio o conclusión.
+- Modificación: del 1° de enero al 31 de diciembre del año inmediato anterior.
+ 
+FORMATO:
+- Jefe de Departamento o superior: formato COMPLETO.
+- Nivel inferior a Jefe de Departamento: formato SIMPLIFICADO.
+ 
+PLATAFORMA Y ACCESO:
+- Navegador recomendado: Chrome o Firefox. También disponible en celular y tableta.
+- Primera contraseña: llega por correo al registrarte. Si no llegó, revisar spam o contactar al Administrador Web Padrón de la entidad.
+- Contraseña olvidada: en la página de SEPIFAPE seleccionar "¿Olvidaste tu contraseña?" e ingresar CURP y correo registrados.
+- Sin correo electrónico: es obligatorio tener uno. Se recomienda crear uno en Gmail.
+ 
+PREGUNTAS FRECUENTES:
+- ¿Tengo plaza federal y estatal? → Debes presentar declaración en SEPIFAPE Y en la plataforma federal que corresponda. Son declaraciones separadas.
+- ¿Tengo dos plazas dentro del Poder Ejecutivo Estatal? → Una declaración por cada cargo.
+- ¿Ya declaré en DECLARANET? → NO es válida para el Estado de Jalisco. Debes declararla en SEPIFAPE y avisar al Órgano Interno de Control.
+- ¿Puedo pedir prórroga? → NO. La Ley General de Responsabilidades Administrativas no contempla prórrogas.
+- ¿Qué pasa si no declaro o declaro fuera de tiempo? → Es falta administrativa no grave. Las sanciones van desde amonestación hasta destitución o inhabilitación temporal.
+- ¿Un campo no aplica para mi situación? → Dar clic en "Ninguno" para dar por terminada esa sección. Los campos en blanco se entienden como sin información que reportar.
+ 
+DOCUMENTOS QUE CONVIENE TENER A LA MANO:
+- CURP, RFC con homoclave.
+- Comprobante de domicilio.
+- Recibo de nómina o comprobante de percepción de sueldo.
+- Acta de matrimonio (si aplica).
+- Currículum vitae.
+(Solo para Jefe de Departamento o superior: escrituras, facturas de vehículos, estados de cuenta, contratos.)
+ 
+LÍMITES DE ARI: No indicar qué bienes declarar, cómo valorarlos ni cómo llenar secciones específicas del formato. Para eso remitir directamente a la Contraloría del Estado de Jalisco o al Órgano Interno de Control de la entidad.
 
 ═══════════════════════════════════════════════════════
 LEYENDA OFICIAL OBLIGATORIA
