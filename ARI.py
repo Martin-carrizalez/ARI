@@ -497,17 +497,28 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
         radial-gradient(at 80% 10%,  rgba(217,70,239,0.07) 0px, transparent 40%) !important;
     background-attachment: fixed !important;
 }
-[data-testid="stHeader"] { display: none !important; }
-#MainMenu, footer, header { visibility: hidden !important; }
-header {
-    visibility: visible !important;
-    height: auto !important;
-    min-height: 0 !important;
+/* 1. ELIMINA EL BLOQUEO: Deja que el botón de abrir exista */
+[data-testid="stHeader"] { 
+    background: transparent !important;
+    display: flex !important; /* Fuerza a que el contenedor esté ahí */
 }
-section[data-testid="stSidebarCollapsedControl"] {
+
+/* 2. OCULTA LA BASURA PERO NO EL BOTÓN */
+#MainMenu, footer { visibility: hidden !important; }
+
+/* 3. ESTILO DEL BOTÓN DE REGRESO (Las 3 rayitas) */
+/* Esto hace que el botón sea visible y del color de tu app */
+[data-testid="stSidebarCollapsedControl"] {
+    background: #1e1b4b !important;
+    border-radius: 0 8px 8px 0;
+    padding: 4px !important;
     visibility: visible !important;
     display: flex !important;
-}        
+}
+
+[data-testid="stSidebarCollapsedControl"] svg {
+    fill: #a78bfa !important;
+}
 .block-container { padding: 0 !important; max-width: 880px !important; margin: 0 auto !important; }
  
 /* SIDEBAR */
