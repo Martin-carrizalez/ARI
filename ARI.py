@@ -806,6 +806,8 @@ with st.sidebar:
               font-family:'DM Sans',sans-serif; font-size:0.82rem;">
         📄 Declaración Patrimonial y de Intereses
     </a>
+    </a>
+    </a>                        
 </div>
 <div style="position:absolute; bottom:20px; left:0; right:0; text-align:center;
             font-size:0.65rem; color:#334155; font-family:'DM Mono',monospace; padding:0 16px;">
