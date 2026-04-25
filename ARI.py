@@ -507,9 +507,10 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
     border-right: 1px solid rgba(139,92,246,0.15) !important;
 }
 [data-testid="stSidebar"] [data-testid="stMarkdown"] p {
-    color: #4c1d95 !important;
+    color: #3b0764 !important;
     font-family: 'DM Mono', monospace !important;
-    font-size: 0.78rem !important;
+    font-size: 0.82rem !important;
+    font-weight: 500 !important;
 }
 [data-testid="stSidebarNav"] { display: none !important; }
  
@@ -591,31 +592,33 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
 }
 .chip {
     display: inline-block;
-    background: rgba(255,255,255,0.90);
-    border: 1px solid rgba(124,58,237,0.25);
+    background: rgba(255,255,255,0.95);
+    border: 1.5px solid rgba(109,40,217,0.35);
     border-radius: 20px;
-    padding: 7px 14px;
-    font-size: 0.80rem;
-    color: #4c1d95;
+    padding: 8px 16px;
+    font-size: 0.83rem;
+    color: #3b0764;
     cursor: pointer;
     font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
     transition: all .18s;
-    box-shadow: 0 1px 4px rgba(124,58,237,0.08);
+    box-shadow: 0 1px 4px rgba(124,58,237,0.10);
 }
 .chip:hover {
-    background: rgba(124,58,237,0.10);
-    border-color: rgba(124,58,237,0.55);
-    color: #5b21b6;
+    background: rgba(109,40,217,0.12);
+    border-color: rgba(109,40,217,0.60);
+    color: #3b0764;
     transform: translateY(-1px);
-    box-shadow: 0 3px 10px rgba(124,58,237,0.15);
+    box-shadow: 0 3px 10px rgba(124,58,237,0.18);
 }
 .section-label {
     font-family: 'DM Mono', monospace;
     font-size: 0.67rem;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: #7c3aed;
+    color: #6d28d9;
     margin: 14px 0 8px;
+    font-weight: 600;
 }
  
 /* BOTONES STREAMLIT (solo para enviar duda a RH) */
@@ -793,7 +796,7 @@ with st.sidebar:
        style="display:block; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
               border-radius:8px; padding:10px 14px; color:#94a3b8; text-decoration:none;
               font-family:'DM Sans',sans-serif; font-size:0.82rem;">
-        ⚖️ Declaración Patrimonial y de Intereses
+        ⚖️ Declaración Patrimonial
     </a>                       
 </div>
 <div style="margin-top:24px; text-align:center;
