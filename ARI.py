@@ -421,6 +421,8 @@ FORMATO:
 - Nivel inferior a Jefe de Departamento: formato SIMPLIFICADO.
  
 PLATAFORMA Y ACCESO:
+- URL: https://sepifape.jalisco.gob.mx/sepifape
+- Correo de dudas: declaracionpatrimonial@jalisco.gob.mx
 - Navegador recomendado: Chrome o Firefox. También disponible en celular y tableta.
 - Primera contraseña: llega por correo al registrarte. Si no llegó, revisar spam o contactar al Administrador Web Padrón de la entidad.
 - Contraseña olvidada: en la página de SEPIFAPE seleccionar "¿Olvidaste tu contraseña?" e ingresar CURP y correo registrados.
@@ -804,10 +806,8 @@ with st.sidebar:
        style="display:block; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
               border-radius:8px; padding:10px 14px; color:#94a3b8; text-decoration:none;
               font-family:'DM Sans',sans-serif; font-size:0.82rem;">
-        📄 Declaración Patrimonial y de Intereses
-    </a>
-    </a>
-    </a>                        
+        ⚖️ Declaración Patrimonial y de Intereses
+    </a>                       
 </div>
 <div style="position:absolute; bottom:20px; left:0; right:0; text-align:center;
             font-size:0.65rem; color:#334155; font-family:'DM Mono',monospace; padding:0 16px;">
