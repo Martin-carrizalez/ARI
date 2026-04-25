@@ -503,14 +503,49 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
  
 /* SIDEBAR */
 [data-testid="stSidebar"] {
-    background: rgba(255,255,255,0.96) !important;
-    border-right: 1px solid rgba(139,92,246,0.15) !important;
+    background: #1e1b4b !important;
+    border-right: 1px solid rgba(139,92,246,0.30) !important;
 }
 [data-testid="stSidebar"] [data-testid="stMarkdown"] p {
-    color: #3b0764 !important;
+    color: #c4b5fd !important;
     font-family: 'DM Mono', monospace !important;
     font-size: 0.82rem !important;
     font-weight: 500 !important;
+}
+/* NAV LINKS SIDEBAR */
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(196,181,253,0.20);
+    border-radius: 10px;
+    padding: 11px 14px;
+    color: #e9d5ff;
+    text-decoration: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 500;
+    transition: all .20s ease;
+    margin-bottom: 8px;
+}
+.sidebar-link:hover {
+    background: rgba(139,92,246,0.25);
+    border-color: rgba(196,181,253,0.55);
+    color: #ffffff;
+    transform: translateX(3px);
+    box-shadow: 0 0 12px rgba(139,92,246,0.25);
+}
+.sidebar-link-primary {
+    background: linear-gradient(135deg, rgba(124,58,237,0.35), rgba(6,182,212,0.20));
+    border-color: rgba(196,181,253,0.45);
+    color: #ffffff;
+    font-weight: 600;
+}
+.sidebar-link-primary:hover {
+    background: linear-gradient(135deg, rgba(124,58,237,0.55), rgba(6,182,212,0.35));
+    border-color: #a78bfa;
+    box-shadow: 0 0 16px rgba(124,58,237,0.35);
 }
 [data-testid="stSidebarNav"] { display: none !important; }
  
@@ -759,48 +794,33 @@ with st.sidebar:
 
     st.markdown("""
 <div style="text-align:center; padding: 0 16px 24px;">
-    <div style="font-size:1.1rem; font-weight:700; color:#f1f5f9; font-family:'DM Sans',sans-serif; margin-bottom:4px;">ARI</div>
-    <div style="font-size:0.68rem; color:#64748b; font-family:'DM Mono',monospace; letter-spacing:0.08em; text-transform:uppercase;">Asistente RH Inteligente</div>
+    <div style="font-size:1.1rem; font-weight:700; background:linear-gradient(90deg,#a78bfa,#67e8f9); -webkit-background-clip:text; -webkit-text-fill-color:transparent; font-family:'DM Sans',sans-serif; margin-bottom:4px;">ARI</div>
+    <div style="font-size:0.68rem; color:#c4b5fd; font-family:'DM Mono',monospace; letter-spacing:0.08em; text-transform:uppercase;">Asistente RH Inteligente</div>
 </div>
-<hr style="border:none; border-top:1px solid rgba(255,255,255,0.06); margin:0 0 20px;">
-<div style="padding:0 16px; font-family:'DM Mono',monospace; font-size:0.72rem; color:#64748b; letter-spacing:0.05em; text-transform:uppercase; margin-bottom:10px;">Accesos directos</div>
+<hr style="border:none; border-top:1px solid rgba(196,181,253,0.20); margin:0 0 20px;">
+<div style="padding:0 16px; font-family:'DM Mono',monospace; font-size:0.72rem; color:#a78bfa; letter-spacing:0.05em; text-transform:uppercase; margin-bottom:10px;">Accesos directos</div>
 """, unsafe_allow_html=True)
 
     st.markdown("""
-<div style="padding:0 12px; display:flex; flex-direction:column; gap:8px;">
-    <a href="https://martin-carrizalez.github.io/portal-RH-DFC/" target="_blank"
-       style="display:block; background:rgba(99,102,241,0.10); border:1px solid rgba(99,102,241,0.25);
-              border-radius:8px; padding:10px 14px; color:#a5b4fc; text-decoration:none;
-              font-family:'DM Sans',sans-serif; font-size:0.82rem;">
+<div style="padding:0 12px; display:flex; flex-direction:column; gap:0;">
+    <a href="https://martin-carrizalez.github.io/portal-RH-DFC/" target="_blank" class="sidebar-link sidebar-link-primary">
         🏠 Portal de RH DFC
     </a>
-    <a href="https://miscomprobantesnomina.jalisco.gob.mx/login" target="_blank"
-       style="display:block; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
-              border-radius:8px; padding:10px 14px; color:#94a3b8; text-decoration:none;
-              font-family:'DM Sans',sans-serif; font-size:0.82rem;">
+    <a href="https://miscomprobantesnomina.jalisco.gob.mx/login" target="_blank" class="sidebar-link">
         💰 Recibos Nómina Estatal
     </a>
-    <a href="https://www.scsso.fone.sep.gob.mx/authenticationendpoint/login.do?commonAuthCallerPath=%2Ft%2Fmiportal.fone.sep.gob.mx%2Fsamlsso&forceAuth=false&passiveAuth=false&sessionDataKey=722119dd-397c-4518-a38b-dda851638ec5&relyingParty=https%3A%2F%2Fmiportal.fone.sep.gob.mx%3A443%2Fsaml%2Fmetadata&type=samlsso&sp=portal_gunix&isSaaSApp=false&authenticators=BasicAuthenticator%3ALOCAL" target="_blank"
-       style="display:block; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
-              border-radius:8px; padding:10px 14px; color:#94a3b8; text-decoration:none;
-              font-family:'DM Sans',sans-serif; font-size:0.82rem;">
+    <a href="https://www.scsso.fone.sep.gob.mx" target="_blank" class="sidebar-link">
         💰 Recibos Nómina FONE
     </a>
-    <a href="https://apprende.jalisco.gob.mx/consulta-correo/" target="_blank"
-       style="display:block; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
-              border-radius:8px; padding:10px 14px; color:#94a3b8; text-decoration:none;
-              font-family:'DM Sans',sans-serif; font-size:0.82rem;">
+    <a href="https://apprende.jalisco.gob.mx/consulta-correo/" target="_blank" class="sidebar-link">
         📧 Consulta tu Correo
     </a>
-    <a href="https://sepifape.jalisco.gob.mx/sepifape/login" target="_blank"
-       style="display:block; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
-              border-radius:8px; padding:10px 14px; color:#94a3b8; text-decoration:none;
-              font-family:'DM Sans',sans-serif; font-size:0.82rem;">
+    <a href="https://sepifape.jalisco.gob.mx/sepifape/login" target="_blank" class="sidebar-link">
         ⚖️ Declaración Patrimonial
-    </a>                       
+    </a>
 </div>
 <div style="margin-top:24px; text-align:center;
-            font-size:0.65rem; color:#334155; font-family:'DM Mono',monospace; padding:0 16px 16px;">
+            font-size:0.65rem; color:#6d28d9; font-family:'DM Mono',monospace; padding:0 16px 16px;">
     DFC · SEJ Jalisco · 2026
 </div>
 """, unsafe_allow_html=True)
