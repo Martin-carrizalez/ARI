@@ -484,100 +484,81 @@ if "chat" not in st.session_state:
 st.html("""
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
+/* ── RESET Y FONDO ── */
 html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
-    background: #f5f3ff !important;
+    background: #1a2d4f !important;
     font-family: 'DM Sans', sans-serif !important;
-    color: #1e1b4b !important;
+    color: #f1f5f9 !important;
 }
+
 [data-testid="stAppViewContainer"] {
-    background: #f5f3ff !important;
+    background: #1a2d4f !important;
     background-image:
-        radial-gradient(at 0% 0%,   rgba(139,92,246,0.12) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, rgba(6,182,212,0.10) 0px, transparent 50%),
-        radial-gradient(at 80% 10%,  rgba(217,70,239,0.07) 0px, transparent 40%) !important;
+        radial-gradient(at 0% 0%,   rgba(92,107,192,0.20) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(20,184,166,0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 0%,  rgba(118,75,162,0.10) 0px, transparent 50%) !important;
     background-attachment: fixed !important;
 }
-[data-testid="stHeader"] { background: #1e1b4b !important; }
-#MainMenu, footer, header { visibility: hidden !important; }
-.block-container { padding: 0 !important; max-width: 880px !important; margin: 0 auto !important; }
- 
-/* SIDEBAR */
+
+
+[data-testid="stHeader"] { background: transparent !important; }
+
+/* ── SIDEBAR ── */
 [data-testid="stSidebar"] {
-    background: #1e1b4b !important;
-    border-right: 1px solid rgba(139,92,246,0.30) !important;
+    background: rgba(22,38,72,0.97) !important;
+    border-right: 1px solid rgba(255,255,255,0.08) !important;
 }
 [data-testid="stSidebar"] [data-testid="stMarkdown"] p {
-    color: #c4b5fd !important;
+    color: #94a3b8 !important;
     font-family: 'DM Mono', monospace !important;
-    font-size: 0.82rem !important;
-    font-weight: 500 !important;
-}
-/* NAV LINKS SIDEBAR */
-.sidebar-link {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(196,181,253,0.20);
-    border-radius: 10px;
-    padding: 11px 14px;
-    color: #e9d5ff;
-    text-decoration: none;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.88rem;
-    font-weight: 500;
-    transition: all .20s ease;
-    margin-bottom: 8px;
-}
-.sidebar-link:hover {
-    background: rgba(139,92,246,0.25);
-    border-color: rgba(196,181,253,0.55);
-    color: #ffffff;
-    transform: translateX(3px);
-    box-shadow: 0 0 12px rgba(139,92,246,0.25);
-}
-.sidebar-link-primary {
-    background: linear-gradient(135deg, rgba(124,58,237,0.35), rgba(6,182,212,0.20));
-    border-color: rgba(196,181,253,0.45);
-    color: #ffffff;
-    font-weight: 600;
-}
-.sidebar-link-primary:hover {
-    background: linear-gradient(135deg, rgba(124,58,237,0.55), rgba(6,182,212,0.35));
-    border-color: #a78bfa;
-    box-shadow: 0 0 16px rgba(124,58,237,0.35);
+    font-size: 0.78rem !important;
 }
 [data-testid="stSidebarNav"] { display: none !important; }
- 
-/* HEADER */
+
+/* ── OCULTAR ELEMENTOS STREAMLIT ── */
+#MainMenu, footer, header { visibility: hidden !important; }
+.block-container {
+    padding: 0 !important;
+    max-width: 860px !important;
+    margin: 0 auto !important;
+}
+
+/* ── HEADER ── */
 .ari-header {
-    background: rgba(255,255,255,0.96);
+    background: rgba(14,22,40,0.85);
     backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(139,92,246,0.20);
-    padding: 14px 28px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding: 16px 32px;
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 16px;
+    margin-bottom: 0;
     position: sticky;
     top: 0;
     z-index: 100;
-    box-shadow: 0 1px 20px rgba(139,92,246,0.08);
+}
+.ari-header img {
+    height: 48px;
+    width: auto;
+}
+.ari-header-divider {
+    width: 1px;
+    height: 32px;
+    background: rgba(255,255,255,0.12);
 }
 .ari-header-title h1 {
-    font-size: 1.05rem;
+    font-size: 1.1rem;
     font-weight: 700;
-    color: #1e1b4b;
+    color: #f1f5f9;
     margin: 0;
-    background: linear-gradient(90deg, #7c3aed, #06b6d4);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.01em;
 }
 .ari-header-title p {
-    font-size: 0.66rem;
-    color: #7c3aed;
+    font-size: 0.68rem;
+    color: #94a3b8;
     margin: 0;
     font-family: 'DM Mono', monospace;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
 }
 .ari-status {
@@ -585,185 +566,179 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 0.70rem;
+    font-size: 0.72rem;
     font-family: 'DM Mono', monospace;
-    color: #059669;
-    background: rgba(5,150,105,0.08);
-    border: 1px solid rgba(5,150,105,0.25);
+    color: #34d399;
+    background: rgba(16,185,129,0.08);
+    border: 1px solid rgba(16,185,129,0.2);
     border-radius: 20px;
     padding: 5px 12px;
 }
 .ari-dot {
-    width: 6px; height: 6px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
-    background: #059669;
+    background: #34d399;
     animation: pulse 2s ease-in-out infinite;
 }
 @keyframes pulse {
-    0%,100%{opacity:1;transform:scale(1);}
-    50%{opacity:.4;transform:scale(0.8);}
+    0%,100% { opacity:1; transform:scale(1); }
+    50%      { opacity:.4; transform:scale(0.8); }
 }
- 
-/* QUINCENA BANNER */
+
+/* ── QUINCENA BANNER ── */
 .quincena-banner {
-    background: linear-gradient(135deg, rgba(124,58,237,0.08), rgba(6,182,212,0.06));
-    border: 1px solid rgba(124,58,237,0.22);
-    border-left: 3px solid #7c3aed;
+    background: rgba(99,102,241,0.10);
+    border: 1px solid rgba(99,102,241,0.25);
+    border-left: 3px solid #6366f1;
     border-radius: 10px;
     padding: 12px 18px;
-    margin: 18px 0 14px;
+    margin: 20px 0 16px;
     font-size: 0.875rem;
-    color: #4c1d95;
+    color: #c7d2fe;
     font-family: 'DM Mono', monospace;
 }
-.quincena-banner strong { color: #7c3aed; }
- 
-/* CHIPS DE PREGUNTAS */
-.chips-wrap {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    padding: 8px 0 16px;
-}
-.chip {
-    display: inline-block;
-    background: rgba(255,255,255,0.95);
-    border: 1.5px solid rgba(109,40,217,0.35);
-    border-radius: 20px;
-    padding: 8px 16px;
-    font-size: 0.83rem;
-    color: #3b0764;
-    cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 600;
-    transition: all .18s;
-    box-shadow: 0 1px 4px rgba(124,58,237,0.10);
-}
-.chip:hover {
-    background: rgba(109,40,217,0.12);
-    border-color: rgba(109,40,217,0.60);
-    color: #3b0764;
-    transform: translateY(-1px);
-    box-shadow: 0 3px 10px rgba(124,58,237,0.18);
-}
+.quincena-banner strong { color: #a5b4fc; }
+
+/* ── SECCIÓN PREGUNTAS ── */
 .section-label {
     font-family: 'DM Mono', monospace;
-    font-size: 0.67rem;
+    font-size: 0.68rem;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: #6d28d9;
-    margin: 14px 0 8px;
-    font-weight: 600;
+    color: #64748b;
+    margin: 16px 0 10px;
 }
- 
-/* BOTONES STREAMLIT (solo para enviar duda a RH) */
+
+/* ── BOTONES SUGERIDOS ── */
 div[data-testid="stButton"] button {
-    background: rgba(124,58,237,0.07) !important;
-    border: 1px solid rgba(124,58,237,0.25) !important;
-    color: #4c1d95 !important;
+    background: rgba(255,255,255,0.04) !important;
+    border: 1px solid rgba(255,255,255,0.10) !important;
+    color: #cbd5e1 !important;
     border-radius: 10px !important;
     font-family: 'DM Sans', sans-serif !important;
     font-size: 0.82rem !important;
-    font-weight: 500 !important;
+    font-weight: 400 !important;
     padding: 10px 14px !important;
     transition: all .2s !important;
+    backdrop-filter: blur(8px) !important;
     width: 100% !important;
     text-align: left !important;
-    min-height: 48px !important;
+    min-height: 52px !important;
     line-height: 1.3 !important;
 }
 div[data-testid="stButton"] button:hover {
-    background: rgba(124,58,237,0.14) !important;
-    border-color: rgba(124,58,237,0.50) !important;
-    color: #5b21b6 !important;
+    background: rgba(99,102,241,0.12) !important;
+    border-color: rgba(99,102,241,0.40) !important;
+    color: #e0e7ff !important;
     transform: translateY(-1px) !important;
 }
- 
-/* DIVIDER */
-hr { border: none !important; border-top: 1px solid rgba(124,58,237,0.10) !important; margin: 12px 0 !important; }
- 
-/* CHAT MESSAGES */
+
+/* ── DIVIDER ── */
+hr {
+    border: none !important;
+    border-top: 1px solid rgba(255,255,255,0.06) !important;
+    margin: 14px 0 !important;
+}
+
+/* ── CHAT MESSAGES ── */
 [data-testid="stChatMessage"] {
-    background: rgba(255,255,255,0.92) !important;
-    border: 1px solid rgba(139,92,246,0.15) !important;
+    background: rgba(255,255,255,0.04) !important;
+    border: 1px solid rgba(255,255,255,0.07) !important;
     border-radius: 14px !important;
+    backdrop-filter: blur(8px) !important;
     margin-bottom: 10px !important;
     padding: 14px 18px !important;
-    box-shadow: 0 2px 8px rgba(124,58,237,0.06) !important;
+    color: #e2e8f0 !important; /* Hace que TODO el texto base sea claro */
 }
-[data-testid="stChatMessage"] p,
-[data-testid="stChatMessage"] li,
+/* Aplicamos el color claro a párrafos y listas (viñetas) */
+[data-testid="stChatMessage"] p, 
+[data-testid="stChatMessage"] li, 
 [data-testid="stChatMessage"] ul {
-    color: #1e1b4b !important;
-    font-size: 0.92rem !important;
-    line-height: 1.75 !important;
+    color: #e2e8f0 !important;
+    font-size: 0.9rem !important;
+    line-height: 1.7 !important;
 }
 [data-testid="stChatMessage"][data-testid*="user"] {
-    background: linear-gradient(135deg, rgba(124,58,237,0.07), rgba(6,182,212,0.05)) !important;
-    border-color: rgba(124,58,237,0.22) !important;
+    background: rgba(99,102,241,0.08) !important;
+    border-color: rgba(99,102,241,0.20) !important;
 }
- 
-/* CHAT INPUT */
+
+/* ── CHAT INPUT FLOTANTE ── */
 [data-testid="stBottom"] {
-    background: rgba(245,243,255,0.98) !important;
-    border-top: 1px solid rgba(124,58,237,0.15) !important;
-    padding: 12px 24px 20px !important;
+    background-color: #1a2d4f !important; /* El color exacto del fondo de tu app */
+    border-top: 1px solid rgba(255,255,255,0.08) !important;
+    padding: 12px 24px 24px 24px !important;
 }
-[data-testid="stBottom"] > div { background: transparent !important; }
-[data-testid="stChatInput"] > div {
-    background: rgba(255,255,255,0.96) !important;
-    border: 1.5px solid rgba(124,58,237,0.30) !important;
-    border-radius: 14px !important;
-    box-shadow: 0 0 0 3px rgba(124,58,237,0.06) !important;
-}
-[data-testid="stChatInput"] textarea {
-    color: #1e1b4b !important;
-    font-family: 'DM Sans', sans-serif !important;
-    font-size: 0.95rem !important;
+
+[data-testid="stBottom"] > div {
     background: transparent !important;
 }
-[data-testid="stChatInput"] textarea::placeholder { color: #a78bfa !important; }
- 
-/* EXPANDER */
-[data-testid="stExpander"] {
-    background: rgba(255,255,255,0.88) !important;
-    border: 1px solid rgba(124,58,237,0.18) !important;
+
+/* Forzar fondo oscuro en la caja de texto (quitar el blanco) */
+[data-testid="stChatInput"] > div {
+    background-color: rgba(22, 38, 72, 0.95) !important; /* Un azul oscuro que combina con tu sidebar */
+    border: 1px solid rgba(255,255,255,0.15) !important;
     border-radius: 12px !important;
-    box-shadow: 0 1px 6px rgba(124,58,237,0.06) !important;
 }
-[data-testid="stExpander"] summary { color: #5b21b6 !important; font-family: 'DM Mono', monospace !important; font-size: 0.82rem !important; }
-[data-testid="stExpander"] summary:hover { color: #7c3aed !important; }
- 
-/* FILE UPLOADER */
+
+/* El texto dentro de la caja */
+[data-testid="stChatInput"] textarea {
+    color: #000000 !important; /* Texto en negro para que resalte en el fondo blanco */
+    background-color: transparent !important; 
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 0.95rem !important;
+}
+
+/* El texto de "Escribe tu pregunta aquí..." */
+[data-testid="stChatInput"] textarea::placeholder { 
+    color: #94a3b8 !important; 
+}
+
+/* ── EXPANDER INCAPACIDADES ── */
+[data-testid="stExpander"] {
+    background: rgba(255,255,255,0.03) !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    border-radius: 12px !important;
+    backdrop-filter: blur(8px) !important;
+}
+[data-testid="stExpander"] summary {
+    color: #94a3b8 !important;
+    font-family: 'DM Mono', monospace !important;
+    font-size: 0.82rem !important;
+}
+[data-testid="stExpander"] summary:hover { color: #c7d2fe !important; }
+
+/* ── FILE UPLOADER ── */
 [data-testid="stFileUploader"] {
-    background: rgba(255,255,255,0.88) !important;
-    border: 1.5px dashed rgba(124,58,237,0.30) !important;
+    background: rgba(255,255,255,0.03) !important;
+    border: 1px dashed rgba(99,102,241,0.3) !important;
     border-radius: 10px !important;
 }
-[data-testid="stFileUploader"] label { color: #5b21b6 !important; }
- 
-/* INFO / WARNING */
+[data-testid="stFileUploader"] label { color: #94a3b8 !important; }
+
+/* ── INFO BOX ── */
 [data-testid="stInfo"] {
-    background: rgba(6,182,212,0.07) !important;
-    border: 1px solid rgba(6,182,212,0.25) !important;
+    background: rgba(99,102,241,0.08) !important;
+    border: 1px solid rgba(99,102,241,0.25) !important;
     border-radius: 10px !important;
-    color: #0e7490 !important;
+    color: #c7d2fe !important;
 }
- 
-/* SPINNER */
-[data-testid="stSpinner"] { color: #7c3aed !important; }
- 
-/* FOOTER */
+
+/* ── SPINNER ── */
+[data-testid="stSpinner"] { color: #6366f1 !important; }
+
+/* ── FOOTER ── */
 .ari-footer {
     text-align: center;
-    padding: 20px;
-    margin-top: 28px;
-    border-top: 1px solid rgba(124,58,237,0.10);
+    padding: 24px 20px;
+    margin-top: 32px;
+    border-top: 1px solid rgba(255,255,255,0.06);
     font-size: 0.78rem;
-    color: #7c3aed;
+    color: #475569;
     font-family: 'DM Mono', monospace;
 }
-.ari-footer a { color: #6d28d9; text-decoration: none; }
+.ari-footer a { color: #6366f1; text-decoration: none; }
 .ari-footer a:hover { text-decoration: underline; }
 </style>
 """)
@@ -794,33 +769,48 @@ with st.sidebar:
 
     st.markdown("""
 <div style="text-align:center; padding: 0 16px 24px;">
-    <div style="font-size:1.1rem; font-weight:700; background:linear-gradient(90deg,#a78bfa,#67e8f9); -webkit-background-clip:text; -webkit-text-fill-color:transparent; font-family:'DM Sans',sans-serif; margin-bottom:4px;">ARI</div>
-    <div style="font-size:0.68rem; color:#c4b5fd; font-family:'DM Mono',monospace; letter-spacing:0.08em; text-transform:uppercase;">Asistente RH Inteligente</div>
+    <div style="font-size:1.1rem; font-weight:700; color:#f1f5f9; font-family:'DM Sans',sans-serif; margin-bottom:4px;">ARI</div>
+    <div style="font-size:0.68rem; color:#64748b; font-family:'DM Mono',monospace; letter-spacing:0.08em; text-transform:uppercase;">Asistente RH Inteligente</div>
 </div>
-<hr style="border:none; border-top:1px solid rgba(196,181,253,0.20); margin:0 0 20px;">
-<div style="padding:0 16px; font-family:'DM Mono',monospace; font-size:0.72rem; color:#a78bfa; letter-spacing:0.05em; text-transform:uppercase; margin-bottom:10px;">Accesos directos</div>
+<hr style="border:none; border-top:1px solid rgba(255,255,255,0.06); margin:0 0 20px;">
+<div style="padding:0 16px; font-family:'DM Mono',monospace; font-size:0.72rem; color:#64748b; letter-spacing:0.05em; text-transform:uppercase; margin-bottom:10px;">Accesos directos</div>
 """, unsafe_allow_html=True)
 
     st.markdown("""
-<div style="padding:0 12px; display:flex; flex-direction:column; gap:0;">
-    <a href="https://martin-carrizalez.github.io/portal-RH-DFC/" target="_blank" class="sidebar-link sidebar-link-primary">
+<div style="padding:0 12px; display:flex; flex-direction:column; gap:8px;">
+    <a href="https://martin-carrizalez.github.io/portal-RH-DFC/" target="_blank"
+       style="display:block; background:rgba(99,102,241,0.10); border:1px solid rgba(99,102,241,0.25);
+              border-radius:8px; padding:10px 14px; color:#a5b4fc; text-decoration:none;
+              font-family:'DM Sans',sans-serif; font-size:0.82rem;">
         🏠 Portal de RH DFC
     </a>
-    <a href="https://miscomprobantesnomina.jalisco.gob.mx/login" target="_blank" class="sidebar-link">
+    <a href="https://miscomprobantesnomina.jalisco.gob.mx/login" target="_blank"
+       style="display:block; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+              border-radius:8px; padding:10px 14px; color:#94a3b8; text-decoration:none;
+              font-family:'DM Sans',sans-serif; font-size:0.82rem;">
         💰 Recibos Nómina Estatal
     </a>
-    <a href="https://www.scsso.fone.sep.gob.mx" target="_blank" class="sidebar-link">
+    <a href="https://www.scsso.fone.sep.gob.mx/authenticationendpoint/login.do?commonAuthCallerPath=%2Ft%2Fmiportal.fone.sep.gob.mx%2Fsamlsso&forceAuth=false&passiveAuth=false&sessionDataKey=722119dd-397c-4518-a38b-dda851638ec5&relyingParty=https%3A%2F%2Fmiportal.fone.sep.gob.mx%3A443%2Fsaml%2Fmetadata&type=samlsso&sp=portal_gunix&isSaaSApp=false&authenticators=BasicAuthenticator%3ALOCAL" target="_blank"
+       style="display:block; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+              border-radius:8px; padding:10px 14px; color:#94a3b8; text-decoration:none;
+              font-family:'DM Sans',sans-serif; font-size:0.82rem;">
         💰 Recibos Nómina FONE
     </a>
-    <a href="https://apprende.jalisco.gob.mx/consulta-correo/" target="_blank" class="sidebar-link">
+    <a href="https://apprende.jalisco.gob.mx/consulta-correo/" target="_blank"
+       style="display:block; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+              border-radius:8px; padding:10px 14px; color:#94a3b8; text-decoration:none;
+              font-family:'DM Sans',sans-serif; font-size:0.82rem;">
         📧 Consulta tu Correo
     </a>
-    <a href="https://sepifape.jalisco.gob.mx/sepifape/login" target="_blank" class="sidebar-link">
-        ⚖️ Declaración Patrimonial
-    </a>
+    <a href="https://sepifape.jalisco.gob.mx/sepifape/login" target="_blank"
+       style="display:block; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+              border-radius:8px; padding:10px 14px; color:#94a3b8; text-decoration:none;
+              font-family:'DM Sans',sans-serif; font-size:0.82rem;">
+        ⚖️ Declaración Patrimonial y de Intereses
+    </a>                       
 </div>
 <div style="margin-top:24px; text-align:center;
-            font-size:0.65rem; color:#6d28d9; font-family:'DM Mono',monospace; padding:0 16px 16px;">
+            font-size:0.65rem; color:#334155; font-family:'DM Mono',monospace; padding:0 16px 16px;">
     DFC · SEJ Jalisco · 2026
 </div>
 """, unsafe_allow_html=True)
