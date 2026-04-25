@@ -800,6 +800,12 @@ with st.sidebar:
               font-family:'DM Sans',sans-serif; font-size:0.82rem;">
         📧 Consulta tu Correo
     </a>
+    <a href="https://sepifape.jalisco.gob.mx/sepifape/login" target="_blank"
+       style="display:block; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+              border-radius:8px; padding:10px 14px; color:#94a3b8; text-decoration:none;
+              font-family:'DM Sans',sans-serif; font-size:0.82rem;">
+        📄 Declaración Patrimonial y de Intereses
+    </a>
 </div>
 <div style="position:absolute; bottom:20px; left:0; right:0; text-align:center;
             font-size:0.65rem; color:#334155; font-family:'DM Mono',monospace; padding:0 16px;">
