@@ -809,8 +809,8 @@ with st.sidebar:
         ⚖️ Declaración Patrimonial y de Intereses
     </a>                       
 </div>
-<div style="position:absolute; bottom:20px; left:0; right:0; text-align:center;
-            font-size:0.65rem; color:#334155; font-family:'DM Mono',monospace; padding:0 16px;">
+<div style="margin-top:24px; text-align:center;
+            font-size:0.65rem; color:#334155; font-family:'DM Mono',monospace; padding:0 16px 16px;">
     DFC · SEJ Jalisco · 2026
 </div>
 """, unsafe_allow_html=True)
