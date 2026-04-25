@@ -112,7 +112,7 @@ Desde el portal puedes descargar todos los formatos y acceder a:
 - Formato de días económicos (estatal y federalizado)
 - Calendario de pagos 2026
 - Hoja de servicio / estímulo por años de servicio
-- Recibos de nómina federalizado: portal FONE SEP (https://www.scsso.fone.sep.gob.mx/)
+- Recibos de nómina federalizado: portal FONE SEP (https://www.scsso.fone.sep.gob.mx/authenticationendpoint/login.do?commonAuthCallerPath=%2Ft%2Fmiportal.fone.sep.gob.mx%2Fsamlsso&forceAuth=false&passiveAuth=false&sessionDataKey=722119dd-397c-4518-a38b-dda851638ec5&relyingParty=https%3A%2F%2Fmiportal.fone.sep.gob.mx%3A443%2Fsaml%2Fmetadata&type=samlsso&sp=portal_gunix&isSaaSApp=false&authenticators=BasicAuthenticator%3ALOCAL)
 - Recibos de nómina estatal: Mis Comprobantes de Nómina (https://miscomprobantesnomina.jalisco.gob.mx/login)
 - Consulta de correo registrado en nómina: https://apprende.jalisco.gob.mx/consulta-correo/
 - Número de Seguro Social IMSS: https://serviciosdigitales.imss.gob.mx/gestionAsegurados-web-externo/asignacionNSS/
@@ -698,7 +698,7 @@ with st.sidebar:
               font-family:'DM Sans',sans-serif; font-size:0.82rem;">
         💰 Recibos Nómina Estatal
     </a>
-    <a href="https://www.scsso.fone.sep.gob.mx" target="_blank"
+    <a href="https://www.scsso.fone.sep.gob.mx/authenticationendpoint/login.do?commonAuthCallerPath=%2Ft%2Fmiportal.fone.sep.gob.mx%2Fsamlsso&forceAuth=false&passiveAuth=false&sessionDataKey=722119dd-397c-4518-a38b-dda851638ec5&relyingParty=https%3A%2F%2Fmiportal.fone.sep.gob.mx%3A443%2Fsaml%2Fmetadata&type=samlsso&sp=portal_gunix&isSaaSApp=false&authenticators=BasicAuthenticator%3ALOCAL" target="_blank"
        style="display:block; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
               border-radius:8px; padding:10px 14px; color:#94a3b8; text-decoration:none;
               font-family:'DM Sans',sans-serif; font-size:0.82rem;">
