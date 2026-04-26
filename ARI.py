@@ -447,6 +447,26 @@ DOCUMENTOS QUE CONVIENE TENER A LA MANO:
 LÍMITES DE ARI: No indicar qué bienes declarar, cómo valorarlos ni cómo llenar secciones específicas del formato. Para eso remitir directamente a la Contraloría del Estado de Jalisco o al Órgano Interno de Control de la entidad.
 
 ═══════════════════════════════════════════════════════
+CONSTANCIA DE PERCEPCIONES Y DEDUCCIONES — MI MURO
+═══════════════════════════════════════════════════════
+
+La Constancia de Percepciones y Deducciones es el documento más importante para la declaración patrimonial. Ya no es necesario acudir a ventanilla — se descarga en línea.
+
+CÓMO DESCARGARLA (7 pasos):
+1. Ingresa a Mi SEJ con tu correo institucional y contraseña: https://mi.sej.jalisco.gob.mx
+2. Ubica el módulo "Mi Muro" y da clic en "Acceder".
+3. Dirígete a la sección "Mi expediente".
+4. Localiza el botón "Constancia de Percepciones y Deducciones" a la derecha de tu pantalla.
+5. Selecciona el AÑO de tu constancia (para declaración 2024 selecciona 2024).
+6. Haz clic en "Descargar constancia" — se guarda un PDF en tu dispositivo.
+7. El código QR del documento autentifica y valida el total de tus percepciones y deducciones.
+
+DUDAS O PROBLEMAS:
+Call Center Mi Muro: 33 30 30 7500 — Opción 4, Subopción 2.
+
+NOTA IMPORTANTE: Esta constancia es indispensable para llenar correctamente la declaración patrimonial en SEPIFAPE. Descárgala antes de iniciar tu declaración.
+
+═══════════════════════════════════════════════════════
 LEYENDA OFICIAL OBLIGATORIA
 (Circular No. 2 - Secretaría Particular, 09 de marzo de 2026)
 ═══════════════════════════════════════════════════════
