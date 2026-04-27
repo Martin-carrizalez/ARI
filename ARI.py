@@ -395,39 +395,29 @@ Fuente: Tabulador de percepciones HSM — DFC SEJ Jalisco | Abril 2026
  
 ═══════════════════════════════════════════════════════
 DECLARACIÓN PATRIMONIAL — SEPIFAPE
-(Contraloría del Estado de Jalisco)
+(Aviso 01/10/2026 · Órgano Interno de Control · SEJ · 23 abril 2026)
 ═══════════════════════════════════════════════════════
- 
-IMPORTANTE: ARI orienta sobre el proceso general. NO asesora sobre qué bienes declarar ni cómo valuar el patrimonio personal — eso corresponde exclusivamente a la Contraloría del Estado.
- 
-¿QUÉ ES SEPIFAPE?
-Sistema de Evolución Patrimonial, de Declaraciones de Intereses y Constancia de Presentación de Declaración Fiscal de la Administración Pública del Estado de Jalisco. Es la plataforma donde se presenta la declaración.
- 
-¿QUIÉNES DEBEN DECLARAR?
-Todos los servidores públicos sin importar el nivel del cargo, incluyendo personal con contrato temporal o interinato.
-La Contraloría del Estado de Jalisco recepciona únicamente las declaraciones del Poder Ejecutivo del Estado de Jalisco.
- 
-TIPOS DE DECLARACIÓN Y PLAZOS:
-- Inicial: dentro de los 60 días naturales siguientes a la toma de posesión del cargo.
-- Modificación: durante el mes de mayo de cada año (si laboró al menos un día del año anterior).
-- Conclusión del encargo: dentro de los 60 días naturales siguientes a la separación del cargo.
- 
-PERÍODO QUE SE REPORTA:
-- Inicial y Conclusión: información actualizada a la fecha del inicio o conclusión.
-- Modificación: del 1° de enero al 31 de diciembre del año inmediato anterior.
- 
-FORMATO:
-- Jefe de Departamento o superior: formato COMPLETO.
-- Nivel inferior a Jefe de Departamento: formato SIMPLIFICADO.
- 
-PLATAFORMA Y ACCESO:
-- URL: https://sepifape.jalisco.gob.mx/sepifape
-- Correo de dudas: declaracionpatrimonial@jalisco.gob.mx
-- Navegador recomendado: Chrome o Firefox. También disponible en celular y tableta.
-- Primera contraseña: llega por correo al registrarte. Si no llegó, revisar spam o contactar al Administrador Web Padrón de la entidad.
-- Contraseña olvidada: en la página de SEPIFAPE seleccionar "¿Olvidaste tu contraseña?" e ingresar CURP y correo registrados.
-- Sin correo electrónico: es obligatorio tener uno. Se recomienda crear uno en Gmail.
- 
+
+IMPORTANTE: ARI orienta sobre el proceso. NO asesora sobre qué bienes declarar ni cómo valuarlos.
+
+PLAZO 2026: Solo del 1° al 31 de mayo de 2026. Es la declaración de MODIFICACIÓN del ejercicio 2025.
+
+PLATAFORMA:
+- URL: https://sepifape.jalisco.gob.mx/sepifape/login
+- Navegador recomendado: Google Chrome o Microsoft Edge.
+- NO se recomienda hacerla desde celular — usar computadora con resolución mínima 1366x768.
+
+ACCESO:
+- Usuario: CURP a 18 dígitos.
+- Contraseña: la misma que se generó para la declaración anterior.
+- Contraseña olvidada: en SEPIFAPE clic en "¿Olvidaste tu contraseña?", ingresar CURP y correo registrado. Llega un enlace al correo para generar nueva contraseña.
+
+GRUPOS Y QUÉ DEBEN DECLARAR:
+- Grupo 1 versión AMPLIADA (Directores Generales, Directores de Área, Jefes de Departamento, Supervisores, Directores de Escuela, Subdirectores): registrar ingresos restando retención de ISR, sin centavos (redondear). También informar adeudos y bienes adquiridos del 01 enero al 31 diciembre 2025.
+- Grupo 2 versión SIMPLIFICADA (docentes, administrativos, personal de apoyo): registrar todos los ingresos del 01 enero al 31 diciembre 2025, restando retención de ISR, sin centavos.
+- Ingresó en 2025: registrar información a partir de la fecha de ingreso.
+- Promovido de docente a directivo en 2025: solicitar cambio de grupo 2 simplificada a grupo 1 ampliada.
+
 PREGUNTAS FRECUENTES:
 - ¿Tengo plaza federal y estatal? → Debes presentar declaración en SEPIFAPE Y en la plataforma federal que corresponda. Son declaraciones separadas.
 - ¿Tengo dos plazas dentro del Poder Ejecutivo Estatal? → Una declaración por cada cargo.
@@ -436,35 +426,28 @@ PREGUNTAS FRECUENTES:
 - ¿Qué pasa si no declaro o declaro fuera de tiempo? → Es falta administrativa no grave. Las sanciones van desde amonestación hasta destitución o inhabilitación temporal.
 - ¿Un campo no aplica para mi situación? → Dar clic en "Ninguno" para dar por terminada esa sección. Los campos en blanco se entienden como sin información que reportar.
  
-DOCUMENTOS QUE CONVIENE TENER A LA MANO:
-- CURP, RFC con homoclave.
-- Comprobante de domicilio.
-- Recibo de nómina o comprobante de percepción de sueldo.
-- Acta de matrimonio (si aplica).
-- Currículum vitae.
-(Solo para Jefe de Departamento o superior: escrituras, facturas de vehículos, estados de cuenta, contratos.)
- 
-LÍMITES DE ARI: No indicar qué bienes declarar, cómo valorarlos ni cómo llenar secciones específicas del formato. Para eso remitir directamente a la Contraloría del Estado de Jalisco o al Órgano Interno de Control de la entidad.
 
-═══════════════════════════════════════════════════════
-CONSTANCIA DE PERCEPCIONES Y DEDUCCIONES — MI MURO
-═══════════════════════════════════════════════════════
+CONSTANCIA DE PERCEPCIONES Y DEDUCCIONES 2025:
+Documento indispensable para la declaración. Se descarga en Mi Muro:
+URL: https://mi.sej.jalisco.gob.mx/?servicio=https://mimuro.jalisco.gob.mx
+Ingresar con correo institucional y contraseña. Válido para ambos subsistemas (estatal y federalizado).
+También disponible en la página de transparencia de nómina de la SEJ.
+Pasos: Ingresar → Mi Muro → Mi expediente → Constancia de Percepciones y Deducciones → Seleccionar año 2025 → Descargar.
+Call Center Mi Muro: 33 30 30 7500 Opción 4, Subopción 2.
 
-La Constancia de Percepciones y Deducciones es el documento más importante para la declaración patrimonial. Ya no es necesario acudir a ventanilla — se descarga en línea.
+ANTES DE ENVIAR: Verificar que todas las secciones estén completadas para poder enviar y obtener el recibo de declaración.
 
-CÓMO DESCARGARLA (7 pasos):
-1. Ingresa a Mi SEJ con tu correo institucional y contraseña: https://mi.sej.jalisco.gob.mx
-2. Ubica el módulo "Mi Muro" y da clic en "Acceder".
-3. Dirígete a la sección "Mi expediente".
-4. Localiza el botón "Constancia de Percepciones y Deducciones" a la derecha de tu pantalla.
-5. Selecciona el AÑO de tu constancia (para declaración 2024 selecciona 2024).
-6. Haz clic en "Descargar constancia" — se guarda un PDF en tu dispositivo.
-7. El código QR del documento autentifica y valida el total de tus percepciones y deducciones.
+CONSECUENCIA DE NO DECLARAR: El incumplimiento puede dejar sin efectos el nombramiento o contrato y separación del cargo (Art. 33 Ley General de Responsabilidades Administrativas).
 
-DUDAS O PROBLEMAS:
-Call Center Mi Muro: 33 30 30 7500 — Opción 4, Subopción 2.
+CONTACTO PARA DUDAS:
+- Delegación Regional SEJ correspondiente (Administrador WEB de SEPIFAPE).
+- Órgano Interno de Control — Área de Evolución Patrimonial:
+  Tel: 33 30 30 75 16 ext. 57516, 53676, 53648, 53661, 53627 · Lunes a viernes 9:00–17:00
+  Correo: juanmanuel.garcia@jalisco.gob.mx
+- Contraloría del Estado: Tel 33 15 43 94 70 · Lunes a viernes 9:00–18:00
+  Av. Vallarta 1252, Guadalajara · Correo: declaracionpatrimonial@jalisco.gob.mx
 
-NOTA IMPORTANTE: Esta constancia es indispensable para llenar correctamente la declaración patrimonial en SEPIFAPE. Descárgala antes de iniciar tu declaración.
+LÍMITES DE ARI: No indicar qué bienes declarar, cómo valuarlos ni cómo llenar secciones específicas. Para eso remitir a los contactos anteriores.
 
 ═══════════════════════════════════════════════════════
 LEYENDA OFICIAL OBLIGATORIA
