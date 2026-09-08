@@ -1,5 +1,5 @@
 import streamlit as st
-import google.generativeai as genai
+import ari_brain as brain
 from datetime import date
 from PIL import Image
 import pytz
@@ -15,11 +15,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
-
-try:
-    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-except Exception:
-    pass
 
 # ── Calendario de quincenas 2026 ───────────────────────────────
 QUINCENAS = [
@@ -475,460 +470,46 @@ También verifica que no exceda 28 días (salvo maternidad).
 Si la imagen no es legible o no parece ser una incapacidad, indícalo.
 """
 
-# ═══════════════════════════════════════════════════════════════
-# CEREBRO DUAL — Gemini (principal) + NVIDIA NIM (respaldo)
-# Si Gemini se satura, agota cuota o falla, la pregunta se manda a
-# NVIDIA. Si ambos fallan, NUNCA se muestra un código de error:
-# se muestra un mensaje amable pidiendo esperar un minuto.
-#
-# El modelo de NVIDIA NO está hardcodeado a ciegas: al primer uso se
-# consulta GET /v1/models con la API key y se elige el primero de la
-# lista de preferencia que realmente exista en el catálogo. Así, si
-# NVIDIA renombra o retira un modelo, ARI no se cae.
-#
-# Secrets necesarios:
-#   NVIDIA_API_KEY        (obligatorio para el respaldo)
-#   NVIDIA_MODEL          (opcional, fuerza un modelo de texto)
-#   NVIDIA_VISION_MODEL   (opcional, fuerza un modelo de visión)
-# ═══════════════════════════════════════════════════════════════
-import time
-import io
-import base64
-import requests
-
-NVIDIA_BASE = "https://integrate.api.nvidia.com/v1"
-NVIDIA_URL = f"{NVIDIA_BASE}/chat/completions"
-NVIDIA_URL_MODELOS = f"{NVIDIA_BASE}/models"
-
-# Orden de preferencia. Se usa el primero que exista en el catálogo
-# de la cuenta. Los que no existan simplemente se ignoran.
-NVIDIA_MODELOS_TEXTO = [
-    # Verificados contra el catálogo real de la cuenta DFC
-    "nvidia/llama-3.1-nemotron-70b-instruct",
-    "nvidia/nemotron-3-super-120b-a12b",
-    "nvidia/nemotron-3.5-lightning-30b-a3b",
-    "mistralai/mistral-nemotron",
-    "deepseek-ai/deepseek-v4-flash-0731",
-    "nvidia/llama-3.1-nemotron-51b-instruct",
-    "nvidia/nemotron-nano-3-30b-a3b",
-    # Por si NVIDIA los repone más adelante
-    "meta/llama-3.3-70b-instruct",
-    "meta/llama-4-maverick-17b-128e-instruct",
-    "meta/llama-3.1-70b-instruct",
-]
-
-NVIDIA_MODELOS_VISION = [
-    "meta/llama-3.2-90b-vision-instruct",
-    "meta/llama-3.2-11b-vision-instruct",
-    "meta/llama-4-maverick-17b-128e-instruct",
-    "microsoft/phi-3.5-vision-instruct",
-]
-
-# Palabras que descartan un modelo como conversacional (embeddings,
-# rerankers, guardrails, etc.) al elegir automáticamente.
-_NO_CHAT = ("embed", "rerank", "guard", "reward", "ocr", "asr", "tts",
-            "retrieval", "safety", "nemoguard", "parakeet", "coder",
-            "codellama", "parse", "nemoretriever", "chatqa", "llama2",
-            "-vlm-", "topic-control")
-
-# Familias Nemotron con modo de razonamiento: hay que apagarlo o
-# contestan con monólogos de "thinking" que el usuario no debe ver.
-_RAZONADORES = ("nemotron-3", "nemotron-3.5", "super", "ultra", "nano",
-                "reasoning", "deepseek-v4")
-
-# Cuando Gemini falla, se deja de intentar durante N segundos y se va
-# directo a NVIDIA (evita perder 20 seg por pregunta mientras está caído).
-COOLDOWN_GEMINI_SEG = 90
-
-# Aviso discreto cuando responde el cerebro de respaldo. Ponlo en False
-# si prefieres que el usuario no note el cambio de motor.
-MOSTRAR_BADGE_CEREBRO = True
-
-MSG_SATURADO = (
-    "⏳ **Estoy recibiendo muchas consultas en este momento.**\n\n"
-    "Espera un minuto y vuelve a preguntarme, por favor. "
-    "No perdiste nada: solo vuelve a escribirla en un momento.\n\n"
-    "Si tu trámite es urgente, acude directamente al área de RH de la DFC "
-    "o consulta el portal: https://martin-carrizalez.github.io/portal-RH-DFC/"
-)
-
-INSTRUCCION_IMAGEN_CORTA = (
-    "Eres ARI, asistente de Recursos Humanos de la Dirección de Formación Continua "
-    "(SEJ Jalisco). Analiza esta imagen de una incapacidad médica y verifica los 3 "
-    "requisitos obligatorios: 1) sello oficial con logotipo del IMSS o ISSSTE, "
-    "2) firma y sello del médico tratante, 3) firma y sello del Jefe de Consulta. "
-    "Marca cada uno con ✅ o ❌, indica qué debe hacer si falta alguno y verifica que "
-    "no exceda 28 días (salvo maternidad). Si la imagen no es legible o no parece una "
-    "incapacidad, dilo. Responde en español, breve y claro."
-)
-
-
-def _secreto(nombre, default=""):
-    try:
-        return st.secrets.get(nombre, default)
-    except Exception:
-        return default
-
-
-def _nvidia_headers():
-    return {
-        "Authorization": f"Bearer {_secreto('NVIDIA_API_KEY')}",
-        "Accept": "application/json",
-        "Content-Type": "application/json",
-    }
-
-
-def _nvidia_catalogo():
-    """IDs de modelos que la API key realmente puede usar. Se consulta
-    una sola vez por sesión. Si falla, devuelve set() y se usa la
-    preferencia #1 a ciegas."""
-    if "_ari_nvidia_catalogo" in st.session_state:
-        return st.session_state["_ari_nvidia_catalogo"]
-    ids = set()
-    if _secreto("NVIDIA_API_KEY"):
-        try:
-            r = requests.get(NVIDIA_URL_MODELOS, headers=_nvidia_headers(), timeout=20)
-            if r.status_code == 200:
-                ids = {m.get("id", "") for m in (r.json().get("data") or []) if m.get("id")}
-            else:
-                st.session_state["_ari_ultimo_error"] = f"NVIDIA /models HTTP {r.status_code}"
-        except Exception as e:
-            st.session_state["_ari_ultimo_error"] = f"NVIDIA /models {type(e).__name__}"
-    st.session_state["_ari_nvidia_catalogo"] = ids
-    return ids
-
-
-def _candidatos(preferidos, forzado="", filtro_vision=False, memoria_key=""):
-    """Lista ORDENADA de modelos a intentar. Estar en /v1/models NO garantiza
-    que el modelo se pueda invocar (varios están listados solo para descarga
-    y devuelven 404), así que se prueban en cascada hasta que uno responda."""
-    orden = []
-    # 1. El que ya funcionó en esta sesión
-    ok = st.session_state.get(memoria_key)
-    if ok:
-        orden.append(ok)
-    # 2. El forzado por secrets
-    if forzado:
-        orden.append(forzado)
-    # 3. Los de la lista de preferencia que existan en el catálogo
-    catalogo = _nvidia_catalogo()
-    for m in preferidos:
-        if not catalogo or m in catalogo:
-            orden.append(m)
-    # 4. Cualquier otro del catálogo que parezca conversacional
-    marca = "vision" if filtro_vision else "instruct"
-    for m in sorted(catalogo):
-        low = m.lower()
-        if marca in low and not any(x in low for x in _NO_CHAT):
-            orden.append(m)
-    # Sin duplicados, máximo 6 intentos
-    return list(dict.fromkeys([m for m in orden if m]))[:6]
-
-
-def _candidatos_texto():
-    return _candidatos(NVIDIA_MODELOS_TEXTO, _secreto("NVIDIA_MODEL"),
-                       memoria_key="_ari_modelo_texto_ok")
-
-
-def _candidatos_vision():
-    return _candidatos(NVIDIA_MODELOS_VISION, _secreto("NVIDIA_VISION_MODEL"),
-                       filtro_vision=True, memoria_key="_ari_modelo_vision_ok")
-
-
-def _modelo_texto():
-    c = _candidatos_texto()
-    return c[0] if c else NVIDIA_MODELOS_TEXTO[0]
-
-
-def _modelo_vision():
-    c = _candidatos_vision()
-    return c[0] if c else NVIDIA_MODELOS_VISION[0]
-
-
-def _es_error_de_cuota(e):
-    txt = f"{type(e).__name__} {e}".lower()
-    return any(k in txt for k in (
-        "429", "quota", "exhaust", "rate limit", "ratelimit",
-        "resource_exhausted", "overload", "unavailable", "503"
-    ))
-
-
-def _gemini_disponible():
-    return time.time() >= st.session_state.get("_ari_cooldown_hasta", 0)
-
-
-def _marcar_gemini_saturado():
-    st.session_state["_ari_cooldown_hasta"] = time.time() + COOLDOWN_GEMINI_SEG
-
-
-def _historial_openai(mensajes, limite=8):
-    """Convierte el historial visible del chat al formato OpenAI/NVIDIA."""
-    salida = []
-    for m in list(mensajes)[-limite:]:
-        rol = "assistant" if m.get("role") == "assistant" else "user"
-        contenido = str(m.get("content", "")).strip()
-        if contenido:
-            salida.append({"role": rol, "content": contenido[:4000]})
-    return salida
-
-
-def _imagen_a_b64(imagen, max_lado=1024, calidad=70):
-    img = imagen.convert("RGB")
-    if max(img.size) > max_lado:
-        r = max_lado / max(img.size)
-        img = img.resize((int(img.size[0] * r), int(img.size[1] * r)))
-    buf = io.BytesIO()
-    img.save(buf, format="JPEG", quality=calidad)
-    return base64.b64encode(buf.getvalue()).decode()
-
-
-def _nvidia_chat(mensajes, modelo, max_tokens=1024, intentos=2, timeout=60):
-    """Llama al endpoint de NVIDIA con UN modelo.
-    Devuelve (texto, probar_otro_modelo)."""
-    if not _secreto("NVIDIA_API_KEY"):
-        st.session_state["_ari_error_nvidia"] = "NVIDIA_API_KEY no configurada"
-        return None, False
-
-    payload = {
-        "model": modelo,
-        "messages": mensajes,
-        "temperature": 0.3,
-        "top_p": 0.9,
-        "max_tokens": max_tokens,
-        "stream": False,
-    }
-
-    for intento in range(intentos):
-        try:
-            r = requests.post(NVIDIA_URL, headers=_nvidia_headers(),
-                              json=payload, timeout=timeout)
-            if r.status_code == 200:
-                choices = (r.json() or {}).get("choices") or []
-                texto = ""
-                if choices:
-                    texto = (choices[0].get("message", {}) or {}).get("content", "") or ""
-                texto = texto.strip()
-                if texto:
-                    return texto, False
-                st.session_state["_ari_error_nvidia"] = f"Respuesta vacía ({modelo})"
-                return None, True
-            if r.status_code in (404, 400, 401, 403, 422):
-                # Modelo no servido / no permitido / payload no soportado
-                st.session_state["_ari_error_nvidia"] = (
-                    f"HTTP {r.status_code} en {modelo}: {r.text[:160]}"
-                )
-                return None, True
-            if r.status_code in (429, 500, 502, 503, 504):
-                st.session_state["_ari_error_nvidia"] = f"HTTP {r.status_code} en {modelo}"
-                if intento < intentos - 1:
-                    time.sleep(1.5)
-                    continue
-                return None, True
-            st.session_state["_ari_error_nvidia"] = (
-                f"HTTP {r.status_code} en {modelo}: {r.text[:160]}"
-            )
-            return None, True
-        except Exception as e:
-            st.session_state["_ari_error_nvidia"] = f"{type(e).__name__} en {modelo}"
-            if intento < intentos - 1:
-                time.sleep(1.0)
-    return None, True
-
-
-def _limpiar_razonamiento(texto):
-    """Quita bloques <think>...</think> que dejan algunos Nemotron/DeepSeek."""
-    if not texto:
-        return texto
-    import re
-    texto = re.sub(r"<think>.*?</think>", "", texto, flags=re.DOTALL | re.IGNORECASE)
-    texto = re.sub(r"^\s*</?think>\s*", "", texto, flags=re.IGNORECASE)
-    return texto.strip()
-
-
-def _nvidia_texto(system_prompt, mensajes_previos, pregunta):
-    """Recorre los modelos candidatos hasta que uno conteste."""
-    base = (system_prompt or "")[:60000]
-    intentados = []
-    for modelo in _candidatos_texto():
-        sistema = base
-        if any(k in modelo.lower() for k in _RAZONADORES):
-            # Instrucción oficial de NVIDIA para apagar el modo razonamiento
-            sistema = "detailed thinking off\n\n" + base
-        msgs = [{"role": "system", "content": sistema}]
-        msgs += _historial_openai(mensajes_previos)
-        msgs.append({"role": "user", "content": str(pregunta)})
-
-        texto, probar_otro = _nvidia_chat(msgs, modelo)
-        intentados.append(modelo)
-        if texto:
-            st.session_state["_ari_modelo_texto_ok"] = modelo
-            return _limpiar_razonamiento(texto)
-        if not probar_otro:
-            break
-    st.session_state["_ari_modelos_intentados"] = intentados
-    return None
-
-
-def _nvidia_imagen(imagen):
-    """VLM de NVIDIA. Formato oficial: bloques content con image_url y
-    data URL en base64 (la imagen debe pesar menos de ~180 KB)."""
-    try:
-        b64 = _imagen_a_b64(imagen)
-        if len(b64) > 180_000:
-            b64 = _imagen_a_b64(imagen, max_lado=760, calidad=55)
-        if len(b64) > 180_000:
-            b64 = _imagen_a_b64(imagen, max_lado=600, calidad=45)
-        if len(b64) > 180_000:
-            st.session_state["_ari_ultimo_error"] = "Imagen demasiado grande para el respaldo"
-            return None
-    except Exception as e:
-        st.session_state["_ari_ultimo_error"] = f"Imagen {type(e).__name__}"
-        return None
-
-    data_url = f"data:image/jpeg;base64,{b64}"
-
-    # Formato documentado por NVIDIA para los VLM del catálogo
-    oficial = [{
-        "role": "user",
-        "content": [
-            {"type": "text", "text": INSTRUCCION_IMAGEN_CORTA},
-            {"type": "image_url", "image_url": {"url": data_url}},
-        ],
-    }]
-    # Formato antiguo: la imagen embebida como <img> dentro del texto
-    legacy = [{
-        "role": "user",
-        "content": f'{INSTRUCCION_IMAGEN_CORTA} <img src="{data_url}" />',
-    }]
-
-    for modelo in _candidatos_vision():
-        for msgs in (oficial, legacy):
-            texto, probar_otro = _nvidia_chat(msgs, modelo, max_tokens=900,
-                                              intentos=1, timeout=90)
-            if texto:
-                st.session_state["_ari_modelo_vision_ok"] = modelo
-                return _limpiar_razonamiento(texto)
-            if not probar_otro:
-                return None
-    return None
-
-
-def _sincronizar_historial_gemini(chat_key, pregunta, respuesta):
-    """Inyecta el turno respondido por NVIDIA en la sesión de Gemini para que
-    no pierda el hilo cuando vuelva a estar disponible. Falla en silencio."""
-    try:
-        chat = st.session_state.get(chat_key)
-        if chat is None:
-            return
-        chat.history.append({"role": "user", "parts": [str(pregunta)]})
-        chat.history.append({"role": "model", "parts": [str(respuesta)]})
-    except Exception:
-        pass
-
-
-def responder_ari(pregunta, chat_key, mensajes_key, prompt_key,
-                  imagen=None, instruccion_imagen=""):
-    """Motor de respuesta con failover.
-
-    Devuelve (texto, cerebro) donde cerebro es 'gemini', 'nvidia' o 'ninguno'.
-    Nunca lanza excepción ni devuelve un código de error al usuario.
-    """
-    system_prompt = st.session_state.get(prompt_key, "")
-    if not system_prompt:
-        try:
-            system_prompt = build_system_prompt()
-        except Exception:
-            system_prompt = ""
-
-    previos = list(st.session_state.get(mensajes_key, []))
-    if previos and previos[-1].get("role") == "user":
-        previos = previos[:-1]
-
-    # ── 1) Cerebro principal: Gemini ──────────────────────────────
-    if st.session_state.get(chat_key) is None:
-        st.session_state["_ari_error_gemini"] = "El chat de Gemini no se pudo crear"
-    elif not _gemini_disponible():
-        st.session_state["_ari_error_gemini"] = (
-            "Gemini en cooldown por cuota. Último error: "
-            + str(st.session_state.get("_ari_error_gemini", ""))[:200]
-        )
-    else:
-        try:
-            if imagen is not None:
-                resp = st.session_state[chat_key].send_message(
-                    [instruccion_imagen or str(pregunta), imagen]
-                )
-            else:
-                resp = st.session_state[chat_key].send_message(str(pregunta))
-            texto = (getattr(resp, "text", "") or "").strip()
-            if texto:
-                st.session_state.pop("_ari_error_gemini", None)
-                return texto, "gemini"
-            st.session_state["_ari_error_gemini"] = "Respuesta vacía (posible filtro de contenido)"
-        except Exception as e:
-            st.session_state["_ari_error_gemini"] = f"{type(e).__name__}: {e}"[:400]
-            # Solo entra en cooldown si es cuota/saturación. Otros errores
-            # (config, SDK, permisos) se reintentan cada vez para no ocultarlos.
-            if _es_error_de_cuota(e):
-                _marcar_gemini_saturado()
-
-    # ── 2) Cerebro de respaldo: NVIDIA ────────────────────────────
-    if imagen is not None:
-        texto = _nvidia_imagen(imagen)
-    else:
-        texto = _nvidia_texto(system_prompt, previos, pregunta)
-
-    if texto:
-        _sincronizar_historial_gemini(chat_key, pregunta, texto)
-        return texto, "nvidia"
-
-    # ── 3) Ambos abajo: mensaje amable, sin códigos de error ──────
-    return MSG_SATURADO, "ninguno"
-
-def mostrar_diagnostico_ari():
-    """Panel de diagnóstico. Solo aparece cuando algo falló.
-    Muestra POR SEPARADO por qué falló cada cerebro."""
-    with st.expander("🔧 Detalles técnicos (para el administrador)"):
-        st.markdown("**1. Gemini (cerebro principal)**")
-        st.code(str(st.session_state.get("_ari_error_gemini", "sin error registrado")),
-                language="text")
-        st.markdown("**2. NVIDIA (cerebro de respaldo)**")
-        st.code(str(st.session_state.get("_ari_error_nvidia", "sin error registrado")),
-                language="text")
-        try:
-            catalogo = st.session_state.get("_ari_nvidia_catalogo")
-            st.write("**Key Gemini cargada:**", bool(_secreto("GEMINI_API_KEY")))
-            st.write("**Key NVIDIA cargada:**", bool(_secreto("NVIDIA_API_KEY")))
-            st.write("**Gemini en cooldown:**", not _gemini_disponible())
-            st.write("**Modelos en el catálogo NVIDIA:**",
-                     len(catalogo) if catalogo is not None else "no consultado")
-            st.write("**Modelos de texto intentados:**",
-                     st.session_state.get("_ari_modelos_intentados", "—"))
-            st.write("**Cascada de texto:**", _candidatos_texto())
-            st.write("**Cascada de visión:**", _candidatos_vision())
-        except Exception as e:
-            st.write("Error al armar diagnóstico:", type(e).__name__, str(e))
-
-
-
 # ── Inicializar sesión ─────────────────────────────────────────
+# messages  = lo que se pinta en pantalla
+# historial = los mismos turnos en formato LangChain, compartido por
+#             Gemini y NVIDIA (fuente única de verdad)
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-if "ari_system_prompt" not in st.session_state:
-    st.session_state["ari_system_prompt"] = build_system_prompt()
+if "historial" not in st.session_state:
+    st.session_state.historial = []
 
-if "chat" not in st.session_state:
-    try:
-        model = genai.GenerativeModel(
-            model_name="gemini-2.5-flash",
-            system_instruction=st.session_state["ari_system_prompt"]
-        )
-        st.session_state.chat = model.start_chat(history=[])
-    except Exception:
-        # Si Gemini ni siquiera arranca, ARI sigue viva con el respaldo NVIDIA
-        st.session_state.chat = None
-        _marcar_gemini_saturado()
+if "system_prompt" not in st.session_state:
+    st.session_state.system_prompt = build_system_prompt()
+
+
+def _preguntar(pregunta, imagen_data_url=None):
+    """Punto único de entrada al orquestador."""
+    r = brain.responder(
+        pregunta=pregunta,
+        system_prompt=st.session_state.system_prompt,
+        historial=st.session_state.historial,
+        gemini_api_key=st.secrets.get("GEMINI_API_KEY", ""),
+        nvidia_api_key=st.secrets.get("NVIDIA_API_KEY", ""),
+        imagen_data_url=imagen_data_url,
+    )
+    if r.ok:
+        brain.registrar_turno(st.session_state.historial, pregunta, r.texto)
+    return r
+
+
+def _pintar_resultado(r):
+    """Muestra la respuesta y, si algo falló, el diagnóstico."""
+    st.markdown(r.texto)
+    if r.es_respaldo:
+        st.caption("⚡ Respuesta generada por el motor de respaldo.")
+    if r.errores:
+        with st.expander("🔧 Detalles técnicos (administrador)"):
+            for modelo, err in r.errores:
+                st.markdown(f"**{modelo}**")
+                st.code(err, language="text")
+            st.write("**Respondió:**", r.proveedor, r.modelo or "—")
 
 # ── UI ─────────────────────────────────────────────────────────
 st.html("""
@@ -1352,7 +933,7 @@ with st.expander("📎 Subir imagen o PDF de incapacidad para verificar requisit
         type=["jpg","jpeg","png","pdf"]
     )
     if uploaded_img and st.button("Verificar incapacidad"):
-        prompt_img = "El usuario ha subido una imagen de su incapacidad médica. Analízala y verifica si cumple con los 3 requisitos obligatorios según la normativa. Indica cuáles cumple (✅) y cuáles no (❌), y qué debe hacer si falta algo. También revisa que no exceda 28 días."
+        prompt_img = brain.INSTRUCCION_IMAGEN
         if uploaded_img.type == "application/pdf":
             import fitz
             pdf_bytes = uploaded_img.read()
@@ -1371,20 +952,17 @@ with st.expander("📎 Subir imagen o PDF de incapacidad para verificar requisit
         st.session_state.messages.append({"role":"user","content":"📸 [Imagen de incapacidad adjunta para verificación]"})
         with st.chat_message("assistant"):
             with st.spinner("Analizando..."):
-                texto, cerebro = responder_ari(
-                    "📸 [Imagen de incapacidad adjunta para verificación]",
-                    chat_key="chat",
-                    mensajes_key="messages",
-                    prompt_key="ari_system_prompt",
-                    imagen=image,
-                    instruccion_imagen=prompt_img,
-                )
-            st.markdown(texto)
-            if cerebro == "nvidia" and MOSTRAR_BADGE_CEREBRO:
-                st.caption("⚡ Análisis generado por el motor de respaldo.")
-            if cerebro == "ninguno":
-                mostrar_diagnostico_ari()
-        st.session_state.messages.append({"role":"assistant","content":texto})
+                try:
+                    data_url = brain.imagen_a_data_url(image)
+                    r = _preguntar(prompt_img, imagen_data_url=data_url)
+                except ValueError:
+                    r = brain.Resultado(
+                        "La imagen pesa demasiado. Vuelve a tomarla con menos "
+                        "resolución o recórtala al área de la incapacidad.",
+                        "ninguno",
+                    )
+            _pintar_resultado(r)
+        st.session_state.messages.append({"role":"assistant","content":r.texto})
 
 # ── CHAT INPUT ────────────────────────────────────────────────
 question = st.session_state.pop("pending_question", None)
@@ -1396,18 +974,9 @@ if user_input:
     st.session_state.messages.append({"role":"user","content":user_input})
     with st.chat_message("assistant"):
         with st.spinner(""):
-            texto, cerebro = responder_ari(
-                user_input,
-                chat_key="chat",
-                mensajes_key="messages",
-                prompt_key="ari_system_prompt",
-            )
-        st.markdown(texto)
-        if cerebro == "nvidia" and MOSTRAR_BADGE_CEREBRO:
-            st.caption("⚡ Respuesta generada por el motor de respaldo.")
-        if cerebro == "ninguno":
-            mostrar_diagnostico_ari()
-    st.session_state.messages.append({"role":"assistant","content":texto})
+            r = _preguntar(user_input)
+        _pintar_resultado(r)
+    st.session_state.messages.append({"role":"assistant","content":r.texto})
 
 # ── FOOTER ────────────────────────────────────────────────────
 st.markdown("""
