@@ -21,16 +21,25 @@ st.set_page_config(
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
 # ── Configuración de los dos cerebros ──────────────────────────
-GEMINI_MODEL = "gemini-2.5-flash"                      # cerebro principal
-# Lista de respaldo: se prueban en orden. Si tu cuenta no tiene acceso a uno
-# (error 404 / model not found), pasa automáticamente al siguiente.
+GEMINI_MODEL = "gemini-2.5-flash"                      # cerebro de visión (imágenes)
+
+# El tier gratuito de Gemini permite ~20 peticiones POR DÍA. Para el chat de texto
+# el motor principal es NVIDIA; Gemini queda de reserva y para leer incapacidades.
+# Si algún día pagas la cuota de Gemini, cambia esto a "gemini".
+CEREBRO_TEXTO_PRINCIPAL = "nvidia"
+
+NVIDIA_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
+
+# Modelos vigentes del catálogo de build.nvidia.com (endpoint gratuito).
+# Se usa el primero; los demás solo entran si ese devuelve error.
+# Si algún día sale HTTP 410 (end of life), busca el nombre nuevo en
+# https://build.nvidia.com y cámbialo aquí.
 NVIDIA_MODELS = [
-    "meta/llama-3.3-70b-instruct",
-    "meta/llama-3.1-70b-instruct",
-    "mistralai/mixtral-8x22b-instruct-v0.1",
-    "meta/llama-3.1-8b-instruct",
+    "openai/gpt-oss-120b",
+    "nvidia/nemotron-3-super-120b-a12b",
+    "moonshotai/kimi-k2.5",
+    "z-ai/glm5",
 ]
-NVIDIA_URL   = "https://integrate.api.nvidia.com/v1/chat/completions"
 MAX_TURNOS   = 12                                      # cuántos mensajes previos se mandan de contexto
 REINTENTOS_GEMINI = 2                                  # intentos antes de saltar a NVIDIA
 ESPERA_REINTENTO  = 1.2                                # segundos entre intentos de Gemini
@@ -538,24 +547,26 @@ def _responder_gemini(user_input, image=None):
                 time.sleep(ESPERA_REINTENTO)
     raise ultimo_error
 
-def _responder_nvidia(user_input):
-    # Cerebro de respaldo. Solo texto: los modelos aquí configurados no ven imágenes.
+def _nvidia_key():
     api_key = st.secrets.get("NVIDIA_API_KEY")
     if not api_key:
         raise RuntimeError(
             "NO HAY LLAVE: falta NVIDIA_API_KEY en Settings → Secrets de Streamlit Cloud"
         )
     if not str(api_key).startswith("nvapi-"):
-        raise RuntimeError(
-            "LLAVE CON FORMATO RARO: la llave de NVIDIA debe empezar con 'nvapi-'"
-        )
+        raise RuntimeError("LLAVE CON FORMATO RARO: debe empezar con 'nvapi-'")
+    return api_key
+
+def _responder_nvidia(user_input):
+    # Cerebro de texto. Estos modelos no ven imágenes.
+    api_key = _nvidia_key()
 
     mensajes = [{"role": "system", "content": build_system_prompt()}]
     mensajes += _historial_nvidia()
     mensajes.append({"role": "user", "content": user_input})
 
     errores = []
-    # Se prueba modelo por modelo: si tu cuenta no tiene acceso a uno, sigue el siguiente.
+    # Se usa NVIDIA_MODELS[0]; los siguientes solo si ese falla.
     for modelo in NVIDIA_MODELS:
         try:
             r = requests.post(
@@ -577,7 +588,7 @@ def _responder_nvidia(user_input):
             )
             if r.status_code != 200:
                 # El cuerpo de la respuesta es donde NVIDIA dice el motivo real.
-                errores.append(f"{modelo} → HTTP {r.status_code}: {r.text[:200]}")
+                errores.append(f"{modelo} → HTTP {r.status_code}: {r.text[:160]}")
                 continue
             texto = (r.json()["choices"][0]["message"]["content"] or "").strip()
             if not texto:
@@ -592,24 +603,35 @@ def _responder_nvidia(user_input):
 
 def responder(user_input, image=None):
     """Devuelve (texto, cerebro). cerebro = 'gemini' | 'nvidia'.
-    Si algo falla, el mensaje trae la causa REAL de cada motor (no un genérico)."""
-    try:
-        return _responder_gemini(user_input, image), "gemini"
-    except Exception as err_gemini:
-        # Con imagen no hay respaldo: el modelo de NVIDIA configurado es solo texto.
-        if image is not None:
+    Con imagen solo puede Gemini. En texto manda CEREBRO_TEXTO_PRINCIPAL
+    y el otro entra como respaldo automático."""
+    # ── Caso imagen: no hay respaldo, el modelo de texto de NVIDIA no ve ──
+    if image is not None:
+        try:
+            return _responder_gemini(user_input, image), "gemini"
+        except Exception as err:
             raise RuntimeError(
                 "El verificador de imágenes no respondió.\n\n"
-                f"**GEMINI:** `{type(err_gemini).__name__}: {err_gemini}`"
-            ) from err_gemini
+                f"**GEMINI:** `{type(err).__name__}: {err}`"
+            ) from err
+
+    # ── Caso texto: se intenta el principal y si falla el otro ──
+    if CEREBRO_TEXTO_PRINCIPAL == "nvidia":
+        primero, segundo = ("nvidia", _responder_nvidia), ("gemini", _responder_gemini)
+    else:
+        primero, segundo = ("gemini", _responder_gemini), ("nvidia", _responder_nvidia)
+
+    try:
+        return primero[1](user_input), primero[0]
+    except Exception as err1:
         try:
-            return _responder_nvidia(user_input), "nvidia"
-        except Exception as err_nvidia:
+            return segundo[1](user_input), segundo[0]
+        except Exception as err2:
             raise RuntimeError(
                 "Los dos motores fallaron. Detalle técnico:\n\n"
-                f"**GEMINI:** `{type(err_gemini).__name__}: {err_gemini}`\n\n"
-                f"**NVIDIA:** `{type(err_nvidia).__name__}: {err_nvidia}`"
-            ) from err_nvidia
+                f"**{primero[0].upper()}:** `{type(err1).__name__}: {err1}`\n\n"
+                f"**{segundo[0].upper()}:** `{type(err2).__name__}: {err2}`"
+            ) from err2
 
 # ── Inicializar sesión ─────────────────────────────────────────
 if "messages" not in st.session_state:
