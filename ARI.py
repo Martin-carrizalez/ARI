@@ -828,6 +828,27 @@ def responder_ari(pregunta, chat_key, mensajes_key, prompt_key,
     # ── 3) Ambos abajo: mensaje amable, sin códigos de error ──────
     return MSG_SATURADO, "ninguno"
 
+def mostrar_diagnostico_ari():
+    """Panel de diagnóstico. Solo aparece cuando algo falló.
+    Muestra el error técnico real y qué modelo eligió NVIDIA."""
+    err = st.session_state.get("_ari_ultimo_error")
+    if not err:
+        return
+    with st.expander("🔧 Detalles técnicos (para el administrador)"):
+        st.code(str(err), language="text")
+        try:
+            catalogo = st.session_state.get("_ari_nvidia_catalogo")
+            st.write("**Key NVIDIA cargada:**", bool(_secreto("NVIDIA_API_KEY")))
+            st.write("**Key Gemini cargada:**", bool(_secreto("GEMINI_API_KEY")))
+            st.write("**Modelos vistos en el catálogo:**",
+                     len(catalogo) if catalogo is not None else "no consultado")
+            st.write("**Modelo de texto elegido:**", _modelo_texto())
+            st.write("**Modelo de visión elegido:**", _modelo_vision())
+            st.write("**Gemini en cooldown:**", not _gemini_disponible())
+        except Exception as e:
+            st.write("Error al armar diagnóstico:", type(e).__name__, str(e))
+
+
 
 # ── Inicializar sesión ─────────────────────────────────────────
 if "messages" not in st.session_state:
@@ -1300,6 +1321,8 @@ with st.expander("📎 Subir imagen o PDF de incapacidad para verificar requisit
             st.markdown(texto)
             if cerebro == "nvidia" and MOSTRAR_BADGE_CEREBRO:
                 st.caption("⚡ Análisis generado por el motor de respaldo.")
+            if cerebro == "ninguno":
+                mostrar_diagnostico_ari()
         st.session_state.messages.append({"role":"assistant","content":texto})
 
 # ── CHAT INPUT ────────────────────────────────────────────────
@@ -1321,6 +1344,8 @@ if user_input:
         st.markdown(texto)
         if cerebro == "nvidia" and MOSTRAR_BADGE_CEREBRO:
             st.caption("⚡ Respuesta generada por el motor de respaldo.")
+        if cerebro == "ninguno":
+            mostrar_diagnostico_ari()
     st.session_state.messages.append({"role":"assistant","content":texto})
 
 # ── FOOTER ────────────────────────────────────────────────────
