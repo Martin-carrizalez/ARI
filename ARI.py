@@ -30,16 +30,20 @@ CEREBRO_TEXTO_PRINCIPAL = "nvidia"
 
 NVIDIA_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
 
-# Modelos vigentes del catálogo de build.nvidia.com (endpoint gratuito).
-# Se usa el primero; los demás solo entran si ese devuelve error.
-# Si algún día sale HTTP 410 (end of life), busca el nombre nuevo en
+# Modelos del catálogo de build.nvidia.com.
+# El primero es el que respondió 503 (= existe y la llave sirve, solo estaba ocupado).
+# Si alguno sale con HTTP 410 (end of life), busca el nombre nuevo en
 # https://build.nvidia.com y cámbialo aquí.
 NVIDIA_MODELS = [
-    "openai/gpt-oss-120b",
     "nvidia/nemotron-3-super-120b-a12b",
-    "moonshotai/kimi-k2.5",
-    "z-ai/glm5",
+    "nvidia/nemotron-3-nano-30b-a3b",
+    "moonshotai/kimi-k2.6",
+    "qwen/qwen3.5-397b-a17b",
+    "minimaxai/minimax-m2.5",
 ]
+# Un 503 significa "ocupado", no "no existe": se reintenta el MISMO modelo.
+REINTENTOS_503 = 3
+ESPERA_503 = 2.0                                       # segundos entre reintentos
 MAX_TURNOS   = 12                                      # cuántos mensajes previos se mandan de contexto
 REINTENTOS_GEMINI = 2                                  # intentos antes de saltar a NVIDIA
 ESPERA_REINTENTO  = 1.2                                # segundos entre intentos de Gemini
@@ -566,38 +570,46 @@ def _responder_nvidia(user_input):
     mensajes.append({"role": "user", "content": user_input})
 
     errores = []
-    # Se usa NVIDIA_MODELS[0]; los siguientes solo si ese falla.
     for modelo in NVIDIA_MODELS:
-        try:
-            r = requests.post(
-                NVIDIA_URL,
-                headers={
-                    "Authorization": f"Bearer {api_key}",
-                    "Accept": "application/json",
-                    "Content-Type": "application/json",
-                },
-                json={
-                    "model": modelo,
-                    "messages": mensajes,
-                    "temperature": 0.2,   # bajo: es información normativa, no creativa
-                    "top_p": 0.9,
-                    "max_tokens": 1024,
-                    "stream": False,
-                },
-                timeout=90,
-            )
-            if r.status_code != 200:
-                # El cuerpo de la respuesta es donde NVIDIA dice el motivo real.
-                errores.append(f"{modelo} → HTTP {r.status_code}: {r.text[:160]}")
-                continue
-            texto = (r.json()["choices"][0]["message"]["content"] or "").strip()
-            if not texto:
-                errores.append(f"{modelo} → respuesta vacía")
-                continue
-            return texto
-        except Exception as e:
-            errores.append(f"{modelo} → {type(e).__name__}: {e}")
-            continue
+        # Cada modelo se intenta varias veces si responde 503 (ocupado).
+        for intento in range(REINTENTOS_503):
+            try:
+                r = requests.post(
+                    NVIDIA_URL,
+                    headers={
+                        "Authorization": f"Bearer {api_key}",
+                        "Accept": "application/json",
+                        "Content-Type": "application/json",
+                    },
+                    json={
+                        "model": modelo,
+                        "messages": mensajes,
+                        "temperature": 0.2,   # bajo: es información normativa, no creativa
+                        "top_p": 0.9,
+                        "max_tokens": 1024,
+                        "stream": False,
+                    },
+                    timeout=90,
+                )
+                if r.status_code == 200:
+                    texto = (r.json()["choices"][0]["message"]["content"] or "").strip()
+                    if texto:
+                        return texto
+                    errores.append(f"{modelo} → respuesta vacía")
+                    break
+
+                # 503 / 429 = ocupado o saturado: esperar y reintentar el mismo modelo.
+                if r.status_code in (429, 503) and intento < REINTENTOS_503 - 1:
+                    time.sleep(ESPERA_503 * (intento + 1))   # espera creciente
+                    continue
+
+                # 404 / 410 / 401 = no tiene caso insistir, pasar al siguiente modelo.
+                errores.append(f"{modelo} → HTTP {r.status_code}: {r.text[:140]}")
+                break
+
+            except Exception as e:
+                errores.append(f"{modelo} → {type(e).__name__}: {e}")
+                break
 
     raise RuntimeError(" | ".join(errores))
 
