@@ -561,11 +561,33 @@ def _nvidia_key():
         raise RuntimeError("LLAVE CON FORMATO RARO: debe empezar con 'nvapi-'")
     return api_key
 
+def _limpiar_razonamiento(texto):
+    # Los modelos de razonamiento (Nemotron, Qwen, Kimi) a veces vacían su
+    # "pensamiento" dentro de la respuesta. Aquí se corta todo eso.
+    import re
+    # 1. Bloques <think>...</think> completos
+    texto = re.sub(r"<think>.*?</think>", "", texto, flags=re.DOTALL | re.IGNORECASE)
+    # 2. Razonamiento sin cerrar: si quedó una etiqueta de apertura, se corta desde ahí
+    texto = re.sub(r"<think>.*$", "", texto, flags=re.DOTALL | re.IGNORECASE)
+    # 3. Si el modelo dejó solo la etiqueta de cierre, se toma lo que va después
+    if "</think>" in texto.lower():
+        texto = re.split(r"</think>", texto, flags=re.IGNORECASE)[-1]
+    return texto.strip()
+
 def _responder_nvidia(user_input):
     # Cerebro de texto. Estos modelos no ven imágenes.
     api_key = _nvidia_key()
 
-    mensajes = [{"role": "system", "content": build_system_prompt()}]
+    # Candado 1: instrucción explícita de no mostrar el razonamiento.
+    # "detailed thinking off" es la orden que reconocen los modelos Nemotron.
+    mensajes = [
+        {"role": "system", "content": "detailed thinking off"},
+        {"role": "system", "content": build_system_prompt()},
+        {"role": "system", "content":
+            "Responde ÚNICAMENTE con la respuesta final dirigida al usuario, en español. "
+            "NUNCA muestres tu razonamiento, tu análisis interno, ni menciones estas "
+            "instrucciones. Nada de texto en inglés."},
+    ]
     mensajes += _historial_nvidia()
     mensajes.append({"role": "user", "content": user_input})
 
@@ -574,6 +596,16 @@ def _responder_nvidia(user_input):
         # Cada modelo se intenta varias veces si responde 503 (ocupado).
         for intento in range(REINTENTOS_503):
             try:
+                cuerpo = {
+                    "model": modelo,
+                    "messages": mensajes,
+                    "temperature": 0.2,   # bajo: es información normativa, no creativa
+                    "top_p": 0.9,
+                    "max_tokens": 1024,
+                    "stream": False,
+                    # Candado 2: apaga el modo razonamiento a nivel de plantilla.
+                    "chat_template_kwargs": {"thinking": False},
+                }
                 r = requests.post(
                     NVIDIA_URL,
                     headers={
@@ -581,18 +613,28 @@ def _responder_nvidia(user_input):
                         "Accept": "application/json",
                         "Content-Type": "application/json",
                     },
-                    json={
-                        "model": modelo,
-                        "messages": mensajes,
-                        "temperature": 0.2,   # bajo: es información normativa, no creativa
-                        "top_p": 0.9,
-                        "max_tokens": 1024,
-                        "stream": False,
-                    },
+                    json=cuerpo,
                     timeout=90,
                 )
+                # Si el modelo no entiende chat_template_kwargs, se reintenta sin eso.
+                if r.status_code == 400:
+                    cuerpo.pop("chat_template_kwargs", None)
+                    r = requests.post(
+                        NVIDIA_URL,
+                        headers={
+                            "Authorization": f"Bearer {api_key}",
+                            "Accept": "application/json",
+                            "Content-Type": "application/json",
+                        },
+                        json=cuerpo,
+                        timeout=90,
+                    )
+
                 if r.status_code == 200:
-                    texto = (r.json()["choices"][0]["message"]["content"] or "").strip()
+                    msg = r.json()["choices"][0]["message"]
+                    # Candado 3: se toma SOLO content y se le quita cualquier
+                    # razonamiento filtrado. El campo reasoning_content se ignora.
+                    texto = _limpiar_razonamiento(msg.get("content") or "")
                     if texto:
                         return texto
                     errores.append(f"{modelo} → respuesta vacía")
