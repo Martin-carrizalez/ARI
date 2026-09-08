@@ -22,7 +22,14 @@ genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
 # ── Configuración de los dos cerebros ──────────────────────────
 GEMINI_MODEL = "gemini-2.5-flash"                      # cerebro principal
-NVIDIA_MODEL = "meta/llama-3.3-70b-instruct"           # cerebro de respaldo
+# Lista de respaldo: se prueban en orden. Si tu cuenta no tiene acceso a uno
+# (error 404 / model not found), pasa automáticamente al siguiente.
+NVIDIA_MODELS = [
+    "meta/llama-3.3-70b-instruct",
+    "meta/llama-3.1-70b-instruct",
+    "mistralai/mixtral-8x22b-instruct-v0.1",
+    "meta/llama-3.1-8b-instruct",
+]
 NVIDIA_URL   = "https://integrate.api.nvidia.com/v1/chat/completions"
 MAX_TURNOS   = 12                                      # cuántos mensajes previos se mandan de contexto
 REINTENTOS_GEMINI = 2                                  # intentos antes de saltar a NVIDIA
@@ -532,57 +539,76 @@ def _responder_gemini(user_input, image=None):
     raise ultimo_error
 
 def _responder_nvidia(user_input):
-    # Cerebro de respaldo. Solo texto: los modelos de NVIDIA aquí
-    # configurados no analizan imágenes.
+    # Cerebro de respaldo. Solo texto: los modelos aquí configurados no ven imágenes.
     api_key = st.secrets.get("NVIDIA_API_KEY")
     if not api_key:
-        raise RuntimeError("Falta NVIDIA_API_KEY en los secrets de la app")
+        raise RuntimeError(
+            "NO HAY LLAVE: falta NVIDIA_API_KEY en Settings → Secrets de Streamlit Cloud"
+        )
+    if not str(api_key).startswith("nvapi-"):
+        raise RuntimeError(
+            "LLAVE CON FORMATO RARO: la llave de NVIDIA debe empezar con 'nvapi-'"
+        )
 
     mensajes = [{"role": "system", "content": build_system_prompt()}]
     mensajes += _historial_nvidia()
     mensajes.append({"role": "user", "content": user_input})
 
-    r = requests.post(
-        NVIDIA_URL,
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Accept": "application/json",
-            "Content-Type": "application/json",
-        },
-        json={
-            "model": NVIDIA_MODEL,
-            "messages": mensajes,
-            "temperature": 0.2,   # bajo: es información normativa, no creativa
-            "top_p": 0.9,
-            "max_tokens": 1024,
-            "stream": False,
-        },
-        timeout=90,
-    )
-    r.raise_for_status()
-    texto = (r.json()["choices"][0]["message"]["content"] or "").strip()
-    if not texto:
-        raise RuntimeError("NVIDIA devolvió una respuesta vacía")
-    return texto
+    errores = []
+    # Se prueba modelo por modelo: si tu cuenta no tiene acceso a uno, sigue el siguiente.
+    for modelo in NVIDIA_MODELS:
+        try:
+            r = requests.post(
+                NVIDIA_URL,
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Accept": "application/json",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": modelo,
+                    "messages": mensajes,
+                    "temperature": 0.2,   # bajo: es información normativa, no creativa
+                    "top_p": 0.9,
+                    "max_tokens": 1024,
+                    "stream": False,
+                },
+                timeout=90,
+            )
+            if r.status_code != 200:
+                # El cuerpo de la respuesta es donde NVIDIA dice el motivo real.
+                errores.append(f"{modelo} → HTTP {r.status_code}: {r.text[:200]}")
+                continue
+            texto = (r.json()["choices"][0]["message"]["content"] or "").strip()
+            if not texto:
+                errores.append(f"{modelo} → respuesta vacía")
+                continue
+            return texto
+        except Exception as e:
+            errores.append(f"{modelo} → {type(e).__name__}: {e}")
+            continue
+
+    raise RuntimeError(" | ".join(errores))
 
 def responder(user_input, image=None):
     """Devuelve (texto, cerebro). cerebro = 'gemini' | 'nvidia'.
-    Si Gemini falla (saturación, cuota, timeout), pasa a NVIDIA sin avisar al usuario con errores técnicos."""
+    Si algo falla, el mensaje trae la causa REAL de cada motor (no un genérico)."""
     try:
         return _responder_gemini(user_input, image), "gemini"
     except Exception as err_gemini:
-        # Con imagen no hay respaldo posible: NVIDIA aquí solo procesa texto.
+        # Con imagen no hay respaldo: el modelo de NVIDIA configurado es solo texto.
         if image is not None:
             raise RuntimeError(
-                "El verificador de imágenes está saturado en este momento. "
-                "Espera unos segundos y vuelve a presionar «Verificar incapacidad»."
+                "El verificador de imágenes no respondió.\n\n"
+                f"**GEMINI:** `{type(err_gemini).__name__}: {err_gemini}`"
             ) from err_gemini
         try:
             return _responder_nvidia(user_input), "nvidia"
         except Exception as err_nvidia:
             raise RuntimeError(
-                "Los dos motores están ocupados en este momento. "
-                "Vuelve a intentarlo en unos segundos."
+                "Los dos motores fallaron. Detalle técnico:\n\n"
+                f"**GEMINI:** `{type(err_gemini).__name__}: {err_gemini}`\n\n"
+                f"**NVIDIA:** `{type(err_nvidia).__name__}: {err_nvidia}`"
             ) from err_nvidia
 
 # ── Inicializar sesión ─────────────────────────────────────────
@@ -951,6 +977,18 @@ with st.sidebar:
 <div style="margin-top:24px; text-align:center;
             font-size:0.65rem; color:#6d28d9; font-family:'DM Mono',monospace; padding:0 16px 16px;">
     DFC · SEJ Jalisco · 2026
+</div>
+""", unsafe_allow_html=True)
+
+    # ── Semáforo de llaves: dice de un vistazo si los secrets quedaron puestos ──
+    _gem_ok = bool(st.secrets.get("GEMINI_API_KEY"))
+    _nv_key = st.secrets.get("NVIDIA_API_KEY")
+    _nv_ok = bool(_nv_key) and str(_nv_key).startswith("nvapi-")
+    st.markdown(f"""
+<div style="padding:0 16px 20px; font-family:'DM Mono',monospace; font-size:0.68rem; color:#c4b5fd;">
+    <div style="opacity:.7; letter-spacing:.06em; text-transform:uppercase; margin-bottom:6px;">Motores</div>
+    <div>{'🟢' if _gem_ok else '🔴'} Gemini · llave {'detectada' if _gem_ok else 'FALTANTE'}</div>
+    <div>{'🟢' if _nv_ok else '🔴'} NVIDIA · llave {'detectada' if _nv_ok else 'FALTANTE o mal formada'}</div>
 </div>
 """, unsafe_allow_html=True)
 
