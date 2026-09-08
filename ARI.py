@@ -480,19 +480,61 @@ Si la imagen no es legible o no parece ser una incapacidad, indícalo.
 # Si Gemini se satura, agota cuota o falla, la pregunta se manda a
 # NVIDIA. Si ambos fallan, NUNCA se muestra un código de error:
 # se muestra un mensaje amable pidiendo esperar un minuto.
+#
+# El modelo de NVIDIA NO está hardcodeado a ciegas: al primer uso se
+# consulta GET /v1/models con la API key y se elige el primero de la
+# lista de preferencia que realmente exista en el catálogo. Así, si
+# NVIDIA renombra o retira un modelo, ARI no se cae.
+#
 # Secrets necesarios:
 #   NVIDIA_API_KEY        (obligatorio para el respaldo)
-#   NVIDIA_MODEL          (opcional, default meta/llama-3.3-70b-instruct)
-#   NVIDIA_VISION_MODEL   (opcional, default meta/llama-3.2-90b-vision-instruct)
+#   NVIDIA_MODEL          (opcional, fuerza un modelo de texto)
+#   NVIDIA_VISION_MODEL   (opcional, fuerza un modelo de visión)
 # ═══════════════════════════════════════════════════════════════
 import time
 import io
 import base64
 import requests
 
-NVIDIA_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
-NVIDIA_MODEL_TEXTO = "meta/llama-3.3-70b-instruct"
-NVIDIA_MODEL_VISION = "meta/llama-3.2-90b-vision-instruct"
+NVIDIA_BASE = "https://integrate.api.nvidia.com/v1"
+NVIDIA_URL = f"{NVIDIA_BASE}/chat/completions"
+NVIDIA_URL_MODELOS = f"{NVIDIA_BASE}/models"
+
+# Orden de preferencia. Se usa el primero que exista en el catálogo
+# de la cuenta. Los que no existan simplemente se ignoran.
+NVIDIA_MODELOS_TEXTO = [
+    # Verificados contra el catálogo real de la cuenta DFC
+    "nvidia/llama-3.1-nemotron-70b-instruct",
+    "nvidia/nemotron-3-super-120b-a12b",
+    "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "mistralai/mistral-nemotron",
+    "deepseek-ai/deepseek-v4-flash-0731",
+    "nvidia/llama-3.1-nemotron-51b-instruct",
+    "nvidia/nemotron-nano-3-30b-a3b",
+    # Por si NVIDIA los repone más adelante
+    "meta/llama-3.3-70b-instruct",
+    "meta/llama-4-maverick-17b-128e-instruct",
+    "meta/llama-3.1-70b-instruct",
+]
+
+NVIDIA_MODELOS_VISION = [
+    "meta/llama-3.2-90b-vision-instruct",
+    "meta/llama-3.2-11b-vision-instruct",
+    "meta/llama-4-maverick-17b-128e-instruct",
+    "microsoft/phi-3.5-vision-instruct",
+]
+
+# Palabras que descartan un modelo como conversacional (embeddings,
+# rerankers, guardrails, etc.) al elegir automáticamente.
+_NO_CHAT = ("embed", "rerank", "guard", "reward", "ocr", "asr", "tts",
+            "retrieval", "safety", "nemoguard", "parakeet", "coder",
+            "codellama", "parse", "nemoretriever", "chatqa", "llama2",
+            "-vlm-", "topic-control")
+
+# Familias Nemotron con modo de razonamiento: hay que apagarlo o
+# contestan con monólogos de "thinking" que el usuario no debe ver.
+_RAZONADORES = ("nemotron-3", "nemotron-3.5", "super", "ultra", "nano",
+                "reasoning", "deepseek-v4")
 
 # Cuando Gemini falla, se deja de intentar durante N segundos y se va
 # directo a NVIDIA (evita perder 20 seg por pregunta mientras está caído).
@@ -528,6 +570,63 @@ def _secreto(nombre, default=""):
         return default
 
 
+def _nvidia_headers():
+    return {
+        "Authorization": f"Bearer {_secreto('NVIDIA_API_KEY')}",
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+    }
+
+
+def _nvidia_catalogo():
+    """IDs de modelos que la API key realmente puede usar. Se consulta
+    una sola vez por sesión. Si falla, devuelve set() y se usa la
+    preferencia #1 a ciegas."""
+    if "_ari_nvidia_catalogo" in st.session_state:
+        return st.session_state["_ari_nvidia_catalogo"]
+    ids = set()
+    if _secreto("NVIDIA_API_KEY"):
+        try:
+            r = requests.get(NVIDIA_URL_MODELOS, headers=_nvidia_headers(), timeout=20)
+            if r.status_code == 200:
+                ids = {m.get("id", "") for m in (r.json().get("data") or []) if m.get("id")}
+            else:
+                st.session_state["_ari_ultimo_error"] = f"NVIDIA /models HTTP {r.status_code}"
+        except Exception as e:
+            st.session_state["_ari_ultimo_error"] = f"NVIDIA /models {type(e).__name__}"
+    st.session_state["_ari_nvidia_catalogo"] = ids
+    return ids
+
+
+def _elegir_modelo(preferidos, forzado="", filtro_vision=False):
+    """Devuelve el ID de modelo a usar: el forzado por secrets, o el
+    primero de la lista de preferencia que exista en el catálogo."""
+    if forzado:
+        return forzado
+    catalogo = _nvidia_catalogo()
+    if not catalogo:
+        return preferidos[0]
+    for m in preferidos:
+        if m in catalogo:
+            return m
+    # Nada de la lista existe: buscar cualquier candidato razonable
+    marca = "vision" if filtro_vision else "instruct"
+    for m in sorted(catalogo):
+        low = m.lower()
+        if marca in low and not any(x in low for x in _NO_CHAT):
+            return m
+    return preferidos[0]
+
+
+def _modelo_texto():
+    return _elegir_modelo(NVIDIA_MODELOS_TEXTO, _secreto("NVIDIA_MODEL"))
+
+
+def _modelo_vision():
+    return _elegir_modelo(NVIDIA_MODELOS_VISION, _secreto("NVIDIA_VISION_MODEL"),
+                          filtro_vision=True)
+
+
 def _gemini_disponible():
     return time.time() >= st.session_state.get("_ari_cooldown_hasta", 0)
 
@@ -559,16 +658,10 @@ def _imagen_a_b64(imagen, max_lado=1024, calidad=70):
 
 def _nvidia_chat(mensajes, modelo, max_tokens=1024, intentos=2, timeout=60):
     """Llama al endpoint OpenAI-compatible de NVIDIA. Devuelve texto o None."""
-    api_key = _secreto("NVIDIA_API_KEY")
-    if not api_key:
+    if not _secreto("NVIDIA_API_KEY"):
         st.session_state["_ari_ultimo_error"] = "NVIDIA_API_KEY no configurada"
         return None
 
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Accept": "application/json",
-        "Content-Type": "application/json",
-    }
     payload = {
         "model": modelo,
         "messages": mensajes,
@@ -580,10 +673,10 @@ def _nvidia_chat(mensajes, modelo, max_tokens=1024, intentos=2, timeout=60):
 
     for intento in range(intentos):
         try:
-            r = requests.post(NVIDIA_URL, headers=headers, json=payload, timeout=timeout)
+            r = requests.post(NVIDIA_URL, headers=_nvidia_headers(),
+                              json=payload, timeout=timeout)
             if r.status_code == 200:
-                data = r.json()
-                choices = data.get("choices") or []
+                choices = (r.json() or {}).get("choices") or []
                 texto = ""
                 if choices:
                     texto = (choices[0].get("message", {}) or {}).get("content", "") or ""
@@ -592,12 +685,19 @@ def _nvidia_chat(mensajes, modelo, max_tokens=1024, intentos=2, timeout=60):
                     return texto
                 st.session_state["_ari_ultimo_error"] = "NVIDIA respuesta vacía"
             elif r.status_code in (429, 500, 502, 503, 504):
-                st.session_state["_ari_ultimo_error"] = f"NVIDIA HTTP {r.status_code}"
+                st.session_state["_ari_ultimo_error"] = f"NVIDIA HTTP {r.status_code} ({modelo})"
                 if intento < intentos - 1:
                     time.sleep(1.5)
                     continue
+            elif r.status_code == 404:
+                # El modelo ya no existe: invalidar catálogo para reelegir
+                st.session_state["_ari_ultimo_error"] = f"NVIDIA modelo inexistente ({modelo})"
+                st.session_state.pop("_ari_nvidia_catalogo", None)
+                return None
             else:
-                st.session_state["_ari_ultimo_error"] = f"NVIDIA HTTP {r.status_code}"
+                st.session_state["_ari_ultimo_error"] = (
+                    f"NVIDIA HTTP {r.status_code} ({modelo}): {r.text[:200]}"
+                )
                 return None
         except Exception as e:
             st.session_state["_ari_ultimo_error"] = f"NVIDIA {type(e).__name__}"
@@ -606,34 +706,65 @@ def _nvidia_chat(mensajes, modelo, max_tokens=1024, intentos=2, timeout=60):
     return None
 
 
+def _limpiar_razonamiento(texto):
+    """Quita bloques <think>...</think> que dejan algunos Nemotron/DeepSeek."""
+    if not texto:
+        return texto
+    import re
+    texto = re.sub(r"<think>.*?</think>", "", texto, flags=re.DOTALL | re.IGNORECASE)
+    texto = re.sub(r"^\s*</?think>\s*", "", texto, flags=re.IGNORECASE)
+    return texto.strip()
+
+
 def _nvidia_texto(system_prompt, mensajes_previos, pregunta):
-    msgs = [{"role": "system", "content": (system_prompt or "")[:60000]}]
+    modelo = _modelo_texto()
+    sistema = (system_prompt or "")[:60000]
+    if any(k in modelo.lower() for k in _RAZONADORES):
+        # Instrucción oficial de NVIDIA para apagar el modo razonamiento
+        sistema = "detailed thinking off\n\n" + sistema
+    msgs = [{"role": "system", "content": sistema}]
     msgs += _historial_openai(mensajes_previos)
     msgs.append({"role": "user", "content": str(pregunta)})
-    return _nvidia_chat(msgs, _secreto("NVIDIA_MODEL", NVIDIA_MODEL_TEXTO))
+    return _limpiar_razonamiento(_nvidia_chat(msgs, modelo))
 
 
 def _nvidia_imagen(imagen):
-    """VLM de NVIDIA: la imagen viaja embebida en base64 (<180 KB)."""
+    """VLM de NVIDIA. Formato oficial: bloques content con image_url y
+    data URL en base64 (la imagen debe pesar menos de ~180 KB)."""
     try:
         b64 = _imagen_a_b64(imagen)
         if len(b64) > 180_000:
             b64 = _imagen_a_b64(imagen, max_lado=760, calidad=55)
         if len(b64) > 180_000:
-            st.session_state["_ari_ultimo_error"] = "Imagen demasiado grande para respaldo"
+            b64 = _imagen_a_b64(imagen, max_lado=600, calidad=45)
+        if len(b64) > 180_000:
+            st.session_state["_ari_ultimo_error"] = "Imagen demasiado grande para el respaldo"
             return None
     except Exception as e:
         st.session_state["_ari_ultimo_error"] = f"Imagen {type(e).__name__}"
         return None
 
-    contenido = f'{INSTRUCCION_IMAGEN_CORTA} <img src="data:image/jpeg;base64,{b64}" />'
-    return _nvidia_chat(
-        [{"role": "user", "content": contenido}],
-        _secreto("NVIDIA_VISION_MODEL", NVIDIA_MODEL_VISION),
-        max_tokens=900,
-        intentos=1,
-        timeout=90,
-    )
+    modelo = _modelo_vision()
+    data_url = f"data:image/jpeg;base64,{b64}"
+
+    # Formato documentado por NVIDIA para los VLM del catálogo
+    msgs = [{
+        "role": "user",
+        "content": [
+            {"type": "text", "text": INSTRUCCION_IMAGEN_CORTA},
+            {"type": "image_url", "image_url": {"url": data_url}},
+        ],
+    }]
+    texto = _nvidia_chat(msgs, modelo, max_tokens=900, intentos=1, timeout=90)
+    if texto:
+        return texto
+
+    # Respaldo: formato antiguo con la imagen embebida como <img> en el texto
+    legacy = [{
+        "role": "user",
+        "content": f'{INSTRUCCION_IMAGEN_CORTA} <img src="{data_url}" />',
+    }]
+    return _nvidia_chat(legacy, modelo, max_tokens=900, intentos=1, timeout=90)
 
 
 def _sincronizar_historial_gemini(chat_key, pregunta, respuesta):
