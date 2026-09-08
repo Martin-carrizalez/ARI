@@ -1,8 +1,10 @@
 import streamlit as st
-import ari_brain as brain
+import google.generativeai as genai
 from datetime import date
 from PIL import Image
 import pytz
+import time
+import requests
 from datetime import datetime
 
 def today_mx():
@@ -15,6 +17,16 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+
+# ── Configuración de los dos cerebros ──────────────────────────
+GEMINI_MODEL = "gemini-2.5-flash"                      # cerebro principal
+NVIDIA_MODEL = "meta/llama-3.3-70b-instruct"           # cerebro de respaldo
+NVIDIA_URL   = "https://integrate.api.nvidia.com/v1/chat/completions"
+MAX_TURNOS   = 12                                      # cuántos mensajes previos se mandan de contexto
+REINTENTOS_GEMINI = 2                                  # intentos antes de saltar a NVIDIA
+ESPERA_REINTENTO  = 1.2                                # segundos entre intentos de Gemini
 
 # ── Calendario de quincenas 2026 ───────────────────────────────
 QUINCENAS = [
@@ -470,46 +482,112 @@ También verifica que no exceda 28 días (salvo maternidad).
 Si la imagen no es legible o no parece ser una incapacidad, indícalo.
 """
 
+# ═══════════════════════════════════════════════════════════════
+# MOTOR DE RESPUESTA — Gemini principal + NVIDIA de respaldo
+# ═══════════════════════════════════════════════════════════════
+
+# El historial único vive en st.session_state.messages.
+# Los dos cerebros leen de ahí, así nunca se desincronizan aunque
+# una pregunta la conteste Gemini y la siguiente NVIDIA.
+
+def _historial_gemini():
+    # Gemini usa role "user" / "model" y el texto dentro de "parts"
+    hist = []
+    for m in st.session_state.messages[-MAX_TURNOS:]:
+        hist.append({
+            "role": "user" if m["role"] == "user" else "model",
+            "parts": [m["content"]]
+        })
+    return hist
+
+def _historial_nvidia():
+    # NVIDIA usa el formato OpenAI: role "user" / "assistant"
+    return [
+        {"role": "user" if m["role"] == "user" else "assistant", "content": m["content"]}
+        for m in st.session_state.messages[-MAX_TURNOS:]
+    ]
+
+def _responder_gemini(user_input, image=None):
+    # Se crea el chat en cada turno con el historial reconstruido:
+    # así no se pierde el contexto si un turno lo contestó NVIDIA.
+    ultimo_error = None
+    for intento in range(REINTENTOS_GEMINI):
+        try:
+            model = genai.GenerativeModel(
+                model_name=GEMINI_MODEL,
+                system_instruction=build_system_prompt()
+            )
+            chat = model.start_chat(history=_historial_gemini())
+            contenido = [user_input] if image is None else [user_input, image]
+            resp = chat.send_message(contenido)
+            texto = (resp.text or "").strip()
+            if not texto:
+                raise RuntimeError("Gemini devolvió una respuesta vacía")
+            return texto
+        except Exception as e:
+            ultimo_error = e
+            # Pausa corta antes del segundo intento (cubre saturación momentánea)
+            if intento < REINTENTOS_GEMINI - 1:
+                time.sleep(ESPERA_REINTENTO)
+    raise ultimo_error
+
+def _responder_nvidia(user_input):
+    # Cerebro de respaldo. Solo texto: los modelos de NVIDIA aquí
+    # configurados no analizan imágenes.
+    api_key = st.secrets.get("NVIDIA_API_KEY")
+    if not api_key:
+        raise RuntimeError("Falta NVIDIA_API_KEY en los secrets de la app")
+
+    mensajes = [{"role": "system", "content": build_system_prompt()}]
+    mensajes += _historial_nvidia()
+    mensajes.append({"role": "user", "content": user_input})
+
+    r = requests.post(
+        NVIDIA_URL,
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+        },
+        json={
+            "model": NVIDIA_MODEL,
+            "messages": mensajes,
+            "temperature": 0.2,   # bajo: es información normativa, no creativa
+            "top_p": 0.9,
+            "max_tokens": 1024,
+            "stream": False,
+        },
+        timeout=90,
+    )
+    r.raise_for_status()
+    texto = (r.json()["choices"][0]["message"]["content"] or "").strip()
+    if not texto:
+        raise RuntimeError("NVIDIA devolvió una respuesta vacía")
+    return texto
+
+def responder(user_input, image=None):
+    """Devuelve (texto, cerebro). cerebro = 'gemini' | 'nvidia'.
+    Si Gemini falla (saturación, cuota, timeout), pasa a NVIDIA sin avisar al usuario con errores técnicos."""
+    try:
+        return _responder_gemini(user_input, image), "gemini"
+    except Exception as err_gemini:
+        # Con imagen no hay respaldo posible: NVIDIA aquí solo procesa texto.
+        if image is not None:
+            raise RuntimeError(
+                "El verificador de imágenes está saturado en este momento. "
+                "Espera unos segundos y vuelve a presionar «Verificar incapacidad»."
+            ) from err_gemini
+        try:
+            return _responder_nvidia(user_input), "nvidia"
+        except Exception as err_nvidia:
+            raise RuntimeError(
+                "Los dos motores están ocupados en este momento. "
+                "Vuelve a intentarlo en unos segundos."
+            ) from err_nvidia
+
 # ── Inicializar sesión ─────────────────────────────────────────
-# messages  = lo que se pinta en pantalla
-# historial = los mismos turnos en formato LangChain, compartido por
-#             Gemini y NVIDIA (fuente única de verdad)
 if "messages" not in st.session_state:
     st.session_state.messages = []
-
-if "historial" not in st.session_state:
-    st.session_state.historial = []
-
-if "system_prompt" not in st.session_state:
-    st.session_state.system_prompt = build_system_prompt()
-
-
-def _preguntar(pregunta, imagen_data_url=None):
-    """Punto único de entrada al orquestador."""
-    r = brain.responder(
-        pregunta=pregunta,
-        system_prompt=st.session_state.system_prompt,
-        historial=st.session_state.historial,
-        gemini_api_key=st.secrets.get("GEMINI_API_KEY", ""),
-        nvidia_api_key=st.secrets.get("NVIDIA_API_KEY", ""),
-        imagen_data_url=imagen_data_url,
-    )
-    if r.ok:
-        brain.registrar_turno(st.session_state.historial, pregunta, r.texto)
-    return r
-
-
-def _pintar_resultado(r):
-    """Muestra la respuesta y, si algo falló, el diagnóstico."""
-    st.markdown(r.texto)
-    if r.es_respaldo:
-        st.caption("⚡ Respuesta generada por el motor de respaldo.")
-    if r.errores:
-        with st.expander("🔧 Detalles técnicos (administrador)"):
-            for modelo, err in r.errores:
-                st.markdown(f"**{modelo}**")
-                st.code(err, language="text")
-            st.write("**Respondió:**", r.proveedor, r.modelo or "—")
 
 # ── UI ─────────────────────────────────────────────────────────
 st.html("""
@@ -933,7 +1011,7 @@ with st.expander("📎 Subir imagen o PDF de incapacidad para verificar requisit
         type=["jpg","jpeg","png","pdf"]
     )
     if uploaded_img and st.button("Verificar incapacidad"):
-        prompt_img = brain.INSTRUCCION_IMAGEN
+        prompt_img = "El usuario ha subido una imagen de su incapacidad médica. Analízala y verifica si cumple con los 3 requisitos obligatorios según la normativa. Indica cuáles cumple (✅) y cuáles no (❌), y qué debe hacer si falta algo. También revisa que no exceda 28 días."
         if uploaded_img.type == "application/pdf":
             import fitz
             pdf_bytes = uploaded_img.read()
@@ -949,20 +1027,17 @@ with st.expander("📎 Subir imagen o PDF de incapacidad para verificar requisit
         with st.chat_message("user"):
             st.markdown("📸 Subí mi incapacidad para verificar que esté correcta.")
             st.image(image, width=320)
-        st.session_state.messages.append({"role":"user","content":"📸 [Imagen de incapacidad adjunta para verificación]"})
         with st.chat_message("assistant"):
             with st.spinner("Analizando..."):
                 try:
-                    data_url = brain.imagen_a_data_url(image)
-                    r = _preguntar(prompt_img, imagen_data_url=data_url)
-                except ValueError:
-                    r = brain.Resultado(
-                        "La imagen pesa demasiado. Vuelve a tomarla con menos "
-                        "resolución o recórtala al área de la incapacidad.",
-                        "ninguno",
-                    )
-            _pintar_resultado(r)
-        st.session_state.messages.append({"role":"assistant","content":r.texto})
+                    texto, cerebro = responder(prompt_img, image)
+                    st.markdown(texto)
+                    # El turno se guarda hasta que hubo respuesta buena
+                    st.session_state.messages.append({"role":"user","content":"📸 [Imagen de incapacidad adjunta para verificación]"})
+                    st.session_state.messages.append({"role":"assistant","content":texto})
+                except Exception as e:
+                    # Mensaje amable en vez del error crudo de la API
+                    st.warning(str(e))
 
 # ── CHAT INPUT ────────────────────────────────────────────────
 question = st.session_state.pop("pending_question", None)
@@ -971,12 +1046,20 @@ user_input = st.chat_input("Escribe tu pregunta aquí...") or question
 if user_input:
     with st.chat_message("user"):
         st.markdown(user_input)
-    st.session_state.messages.append({"role":"user","content":user_input})
     with st.chat_message("assistant"):
         with st.spinner(""):
-            r = _preguntar(user_input)
-        _pintar_resultado(r)
-    st.session_state.messages.append({"role":"assistant","content":r.texto})
+            try:
+                texto, cerebro = responder(user_input)
+                st.markdown(texto)
+                if cerebro == "nvidia":
+                    # Aviso discreto de que contestó el respaldo. Borra esta línea si no lo quieres visible.
+                    st.caption("⚡ Respondido por el motor de respaldo")
+                # El turno se guarda DESPUÉS de responder bien, para que un
+                # fallo no deje el historial con una pregunta sin respuesta.
+                st.session_state.messages.append({"role":"user","content":user_input})
+                st.session_state.messages.append({"role":"assistant","content":texto})
+            except Exception as e:
+                st.warning(str(e))
 
 # ── FOOTER ────────────────────────────────────────────────────
 st.markdown("""
